@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNOW Companion</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <header class="app-header">
+        <h1>ServiceNow Live Companion</h1>
+        <div class="status-indicator error" id="connStatus">Disconnected</div>
+    </header>
+
+    <main class="workspace">
+        <aside class="control-panel" id="sidebar">
+            <div class="instance-info">
+                <h3>Active Instance</h3>
+                <p id="instanceUrl">Awaiting connection...</p>
+                <div class="token-status" id="tokenStatus">
+                    <span class="dot"></span> No Token Found
+                </div>
+                <button id="btnConnect" class="primary-btn" style="margin-top: 10px;">Initialize Bridge</button>
+            </div>
+
+            <div class="tool-nav hidden" id="toolNav">
+                <h3>Developer Tools</h3>
+                <ul class="nav-list">
+                    <li data-target="panel-impersonate" class="active">Rapid Impersonator</li>
+                    <li data-target="panel-bgscript">Background Script</li>
+                    <li data-target="panel-updateset">Update Sets</li>
+                    <li data-target="panel-schema">Schema Exporter</li>
+                    <li data-target="panel-flow">Background Flow Tracker</li>
+                    <li data-target="panel-logs">Real-Time Logs</li>
+                    <li data-target="panel-xml">XML Payload Studio</li>
+                </ul>
+            </div>
+        </aside>
+
+        <section class="editor-area">
+
+            <div class="tool-panel active" id="panel-welcome">
+                <div class="placeholder-message" id="mainDisplay">
+                    <h3>Live Bridge Status</h3>
+                    <p>Click "Initialize Bridge" to securely connect to your active ServiceNow tab.</p>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-impersonate">
+                <div class="panel-header">
+                    <h2>Rapid Impersonator</h2>
+                    <span class="badge">Live API</span>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="impersonateSearch"
+                        placeholder="Search user by name or email (Press Enter)...">
+                    <button id="btnSearchUser" class="secondary-btn">Search</button>
+                </div>
+                <ul id="userSearchResults" class="search-results hidden"></ul>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-bgscript">
+                <div class="panel-header">
+                    <h2>Background Script</h2>
+                    <div class="input-group">
+                        <select id="snippetSelector" class="scope-select">
+                            <option value="">-- Load Snippet --</option>
+                            <option value="incident">Get 5 Recent Incidents</option>
+                            <option value="user">Count Active Users</option>
+                            <option value="property">Check System Property</option>
+                        </select>
+                        <select id="bgScope" class="scope-select">
+                            <option value="global">Global</option>
+                        </select>
+                    </div>
+                </div>
+                <textarea id="codeArea" spellcheck="false">var gr = new GlideRecord('incident');
+gr.setLimit(5);
+gr.query();
+while(gr.next()) {
+    gs.info(gr.number + ' - ' + gr.short_description);
+}</textarea>
+                <button id="btnRunScript" class="primary-btn mt-10">Execute Script</button>
+                <div class="results-section hidden" id="scriptResultsBox">
+                    <h3>Output Log</h3>
+                    <pre id="scriptOutput" class="console-output"></pre>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-updateset">
+                <div class="panel-header">
+                    <h2>Scope & Update Set</h2>
+                </div>
+
+                <div class="input-group full-width mt-10">
+                    <label>Application Scope</label>
+                    <input type="text" id="scopeSearch" placeholder="Filter scopes by name..." class="form-control mb-5"
+                        disabled>
+                    <select id="scopeSelect" class="form-control" disabled>
+                        <option>Loading scopes...</option>
+                    </select>
+                </div>
+
+                <div class="input-group full-width mt-15">
+                    <label>Active Update Set</label>
+                    <input type="text" id="updateSetSearch" placeholder="Search update sets on server..."
+                        class="form-control mb-5" disabled>
+                    <select id="updateSetSelect" class="form-control" disabled>
+                        <option>Awaiting scope selection...</option>
+                    </select>
+                </div>
+
+                <button id="btnApplyUpdateSet" class="primary-btn mt-15" disabled>Apply Changes</button>
+                <div id="updateSetStatus" style="margin-top: 10px; font-size: 13px; font-weight: bold;"></div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-schema">
+                <div class="panel-header">
+                    <h2>Dictionary Exporter</h2>
+                </div>
+
+                <div class="input-group mt-10">
+                    <input type="text" id="schemaTableInput" placeholder="Table name (e.g., incident)">
+                    <button id="btnDetectTable" class="secondary-btn">Auto-Detect</button>
+                </div>
+
+                <p style="font-size: 11px; color: #657575; margin-top: 5px;">
+                    Downloads column names, types, max lengths, and reference targets.
+                </p>
+
+                <div class="input-group mt-15">
+                    <button id="btnExportCSV" class="primary-btn">Download CSV</button>
+                    <button id="btnExportJSON" class="primary-btn">Download JSON</button>
+                </div>
+
+                <div id="schemaStatus" style="margin-top: 15px; font-size: 13px; font-weight: bold;"></div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-flow">
+                <div class="panel-header">
+                    <h2>Background Flow Tracker</h2>
+                    <span class="badge">Service Worker</span>
+                </div>
+
+                <div class="input-group full-width mt-10">
+                    <label>Flow Context Sys ID</label>
+                    <input type="text" id="flowSysIdInput"
+                        placeholder="Navigate to a Flow Execution page to auto-detect...">
+                </div>
+
+                <p style="font-size: 11px; color: #657575; margin-top: 10px; line-height: 1.4;">
+                    Send this execution to Chrome's background worker. You can close this extension and change tabs.
+                    Chrome will send you a desktop push notification the exact moment the Flow finishes or errors out.
+                </p>
+
+                <button id="btnTrackFlow" class="primary-btn mt-15" disabled>Track in Background</button>
+                <div id="flowTrackerStatus" style="margin-top: 15px; font-size: 13px; font-weight: bold;"></div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-logs">
+                <div class="panel-header">
+                    <h2>Live Terminal</h2>
+                    <span class="badge">Polling Engine</span>
+                </div>
+                
+                <div class="input-group full-width mt-10">
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                        <button id="btnStreamLogs" class="primary-btn" style="flex: 1;">Start Stream</button>
+                        <button id="btnClearLogs" class="secondary-btn" style="width: 80px;">Clear</button>
+                    </div>
+                    <input type="text" id="logFilterInput" placeholder="Filter stream (e.g., your script name or 'gs.info')..." class="mt-10">
+                </div>
+
+                <div class="terminal-window mt-15" id="logTerminal">
+                    <div class="log-entry system">[System] Terminal ready. Click 'Start Stream' to tail syslog...</div>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-xml">
+                <div class="panel-header">
+                    <h2>XML Payload Studio</h2>
+                    <span class="badge">Offline Utility</span>
+                </div>
+                
+                <div class="input-group mt-10" style="flex-wrap: wrap;">
+                    <button id="btnFormatXML" class="secondary-btn">Format / Beautify</button>
+                    <button id="btnStripSysMeta" class="secondary-btn">Strip SNOW Meta</button>
+                    <button id="btnCopyXML" class="secondary-btn">Copy to Clipboard</button>
+                    <button id="btnDownloadXML" class="primary-btn" style="flex: 1;">Download .xml</button>
+                </div>
+
+                <textarea id="xmlEditorArea" class="mt-15" spellcheck="false" placeholder="Paste your ServiceNow XML payload here..."></textarea>
+                
+                <div id="xmlStatus" style="margin-top: 10px; font-size: 13px; font-weight: bold;"></div>
+            </div>
+
+        </section>
+    </main>
+
+    <script src="js/bridge.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

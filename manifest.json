@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "ServiceNow Live Companion",
+  "version": "2.0",
+  "description": "Advanced live-instance developer toolkit.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "scripting",
+    "storage",
+    "webNavigation",
+    "notifications"
+  ],
+  "host_permissions": [
+    "*://*.service-now.com/*"
+  ],
+  "action": {
+    "default_title": "Open SNOW Companion",
+    "default_popup": "dashboard.html"
+  },
+  "background": {
+    "service_worker": "js/background.js"
+  }
+}
