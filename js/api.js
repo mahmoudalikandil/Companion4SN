@@ -526,6 +526,216 @@ const SNOW_API = {
     }
 })();`;
         return await this.runBackgroundScript(script, config.scope);
+    },
+
+    analyzeUserAcls: async function (userSysId, tablesArray) {
+        const tablesString = JSON.stringify(tablesArray);
+        const script = `(function() {
+    var userId = '${userSysId}';
+    var tables = ${tablesString};
+    
+    gs.print('>>>START_ACL_ANALYSIS<<<');
+    
+    try {
+        var result = {
+            roles_hierarchy: {
+                direct_roles: [],
+                groups: []
+            },
+            permissions: {}
+        };
+        
+        // 1. Get direct user roles and contained roles
+        var userRoleGr = new GlideRecord('sys_user_has_role');
+        userRoleGr.addQuery('user', userId);
+        userRoleGr.addQuery('inherited', false);
+        userRoleGr.addQuery('state', 'active');
+        userRoleGr.query();
+        while (userRoleGr.next()) {
+            var roleName = userRoleGr.role.name.toString();
+            var roleId = userRoleGr.role.toString();
+            
+            // Get contained roles
+            var contains = [];
+            var childGr = new GlideRecord('sys_user_role_contains');
+            childGr.addQuery('role', roleId);
+            childGr.query();
+            while (childGr.next()) {
+                contains.push(childGr.contains.name.toString());
+            }
+            
+            result.roles_hierarchy.direct_roles.push({
+                name: roleName,
+                contains: contains
+            });
+        }
+        
+        // 2. Get group roles and contained roles
+        var memberGr = new GlideRecord('sys_user_grmember');
+        memberGr.addQuery('user', userId);
+        memberGr.query();
+        while (memberGr.next()) {
+            var groupName = memberGr.group.name.toString();
+            var groupId = memberGr.group.toString();
+            
+            var groupRoles = [];
+            var grRoleGr = new GlideRecord('sys_group_has_role');
+            grRoleGr.addQuery('group', groupId);
+            grRoleGr.addQuery('inherits', true);
+            grRoleGr.query();
+            while (grRoleGr.next()) {
+                var gRoleName = grRoleGr.role.name.toString();
+                var gRoleId = grRoleGr.role.toString();
+                
+                var gContains = [];
+                var gChildGr = new GlideRecord('sys_user_role_contains');
+                gChildGr.addQuery('role', gRoleId);
+                gChildGr.query();
+                while (gChildGr.next()) {
+                    gContains.push(gChildGr.contains.name.toString());
+                }
+                
+                groupRoles.push({
+                    name: gRoleName,
+                    contains: gContains
+                });
+            }
+            
+            result.roles_hierarchy.groups.push({
+                name: groupName,
+                roles: groupRoles
+            });
+        }
+        
+        // 3. Get all user active roles for ACL matching
+        var allRolesList = [];
+        var allRolesGr = new GlideRecord('sys_user_has_role');
+        allRolesGr.addQuery('user', userId);
+        allRolesGr.addQuery('state', 'active');
+        allRolesGr.query();
+        while (allRolesGr.next()) {
+            allRolesList.push(allRolesGr.role.name.toString());
+        }
+        
+        // 4. Impersonate to evaluate table permissions
+        var originalUser = gs.getUserID();
+        gs.getSession().impersonate(userId);
+        
+        for (var i = 0; i < tables.length; i++) {
+            var tbl = tables[i];
+            var tblGr = new GlideRecord(tbl);
+            
+            var canRead = tblGr.canRead();
+            var canWrite = tblGr.canWrite();
+            var canCreate = tblGr.canCreate();
+            var canDelete = tblGr.canDelete();
+            
+            result.permissions[tbl] = {
+                read: canRead,
+                write: canWrite,
+                create: canCreate,
+                'delete': canDelete,
+                missing_roles: {
+                    read: [],
+                    write: [],
+                    create: [],
+                    'delete': []
+                }
+            };
+            
+            // If failed access, analyze required ACL roles (evaluated in system context)
+            if (!canRead || !canWrite || !canCreate || !canDelete) {
+                // Temporarily run in system context to query ACL rules
+                gs.getSession().impersonate(originalUser);
+                
+                var operations = [];
+                if (!canRead) operations.push('read');
+                if (!canWrite) operations.push('write');
+                if (!canCreate) operations.push('create');
+                if (!canDelete) operations.push('delete');
+                
+                for (var o = 0; o < operations.length; o++) {
+                    var op = operations[o];
+                    var missing = getMissingRolesForTable(tbl, op, allRolesList);
+                    result.permissions[tbl].missing_roles[op] = missing;
+                }
+                
+                // Switch back to target user
+                gs.getSession().impersonate(userId);
+            }
+        }
+        
+        // Restore original session
+        gs.getSession().impersonate(originalUser);
+        
+        gs.print(JSON.stringify(result));
+        gs.print('>>>ACL_SUCCESS<<<');
+
+    } catch(e) {
+        gs.print('[ERROR] Analysis failed: ' + e.message);
+        gs.print('>>>ACL_ERROR<<<');
+    }
+    
+    // Helper function inside script context
+    function getMissingRolesForTable(tableName, operation, userRolesList) {
+        var aclNames = [tableName];
+        var currentTable = tableName;
+        while (currentTable) {
+            var dbObj = new GlideRecord('sys_db_object');
+            dbObj.addQuery('name', currentTable);
+            dbObj.query();
+            if (dbObj.next() && dbObj.super_class) {
+                currentTable = dbObj.super_class.name.toString();
+                if (currentTable) aclNames.push(currentTable);
+            } else {
+                currentTable = null;
+            }
+        }
+        aclNames.push('*');
+        
+        var aclGr = new GlideRecord('sys_security_acl');
+        aclGr.addQuery('name', 'IN', aclNames.join(','));
+        aclGr.addQuery('operation', operation);
+        aclGr.addQuery('active', true);
+        aclGr.query();
+        
+        var aclDetails = [];
+        while (aclGr.next()) {
+            var aclId = aclGr.getUniqueValue();
+            var aclName = aclGr.getValue('name');
+            
+            var aclRoleGr = new GlideRecord('sys_security_acl_role');
+            aclRoleGr.addQuery('sys_security_acl', aclId);
+            aclRoleGr.query();
+            
+            var requiredRoles = [];
+            while (aclRoleGr.next()) {
+                requiredRoles.push(aclRoleGr.sys_user_role.name.toString());
+            }
+            
+            var userHasAny = false;
+            if (requiredRoles.length === 0) {
+                userHasAny = true;
+            } else {
+                for (var i = 0; i < requiredRoles.length; i++) {
+                    if (userRolesList.indexOf(requiredRoles[i]) !== -1) {
+                        userHasAny = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!userHasAny && requiredRoles.length > 0) {
+                aclDetails.push({
+                    acl_name: aclName,
+                    required_roles: requiredRoles
+                });
+            }
+        }
+        return aclDetails;
+    }
+})();`;
+        return await this.runBackgroundScript(script, 'global');
     }
 };
 

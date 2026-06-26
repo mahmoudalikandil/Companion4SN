@@ -37,6 +37,7 @@
                     <li data-target="panel-flow">Background Flow Tracker</li>
                     <li data-target="panel-logs">Real-Time Logs</li>
                     <li data-target="panel-xml">XML Payload Studio</li>
+                    <li data-target="panel-acl">ACL & Role Analyzer</li>
                 </ul>
             </div>
         </aside>
@@ -246,9 +247,53 @@ while(gr.next()) {
 
                 <button id="btnRunClone" class="primary-btn mt-15" style="width: 100%;">Execute Clone</button>
                 
-                <div class="results-section hidden" id="clonerResultsBox" style="margin-top: 15px;">
+                <div class="results-section hidden" id="clonerResultsBox">
                     <h3>Execution Console Output</h3>
-                    <pre id="clonerOutput" class="console-output" style="max-height: 180px;"></pre>
+                    <pre id="clonerOutput" class="console-output"></pre>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-acl">
+                <div class="panel-header">
+                    <h2>ACL & Role Analyzer</h2>
+                    <span class="badge">Diagnostics</span>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="aclUserSearch" placeholder="Search user by name or email (Press Enter)..." style="flex: 1;">
+                    <button id="btnAclSearchUser" class="secondary-btn">Search</button>
+                </div>
+                <ul id="aclUserSearchResults" class="search-results hidden" style="margin-top: 5px;"></ul>
+
+                <div id="aclUserCard" class="instance-info hidden mt-10" style="background-color: #e3ebea; border-color: #b0c2c0;">
+                    <h3 style="color: #1b5c53; font-weight: bold;">Target User</h3>
+                    <p id="aclTargetUserName" style="margin: 0; font-size: 14px;">None Selected</p>
+                    <span id="aclTargetUserSysId" style="font-size: 11px; color: #657575;"></span>
+                </div>
+
+                <div id="aclDiagnosticsArea" class="hidden mt-15" style="display: flex; gap: 15px; flex: 1; overflow: hidden;">
+                    <!-- Left: Role Hierarchy Tree -->
+                    <div style="flex: 1; display: flex; flex-direction: column; background: white; border: 1px solid #c1c8c8; border-radius: 4px; padding: 10px; overflow-y: auto;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #657575; border-bottom: 1px solid #e4e6ea; padding-bottom: 5px;">Role Hierarchy</h4>
+                        <div id="aclRoleTree" class="role-tree-container"></div>
+                    </div>
+
+                    <!-- Right: Table CRUD Evaluator -->
+                    <div style="flex: 1; display: flex; flex-direction: column; background: white; border: 1px solid #c1c8c8; border-radius: 4px; padding: 10px; overflow-y: auto;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #657575; border-bottom: 1px solid #e4e6ea; padding-bottom: 5px;">Table Access (CRUD)</h4>
+                        
+                        <div id="aclTableGrid" style="display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto;"></div>
+
+                        <div class="mt-10" style="border-top: 1px solid #e4e6ea; padding-top: 10px; display: flex; gap: 6px; flex-shrink: 0;">
+                            <input type="text" id="aclCustomTableInput" placeholder="Add custom table (e.g. core_company)" style="font-size: 11px; padding: 4px 8px; height: 26px;">
+                            <button id="btnAclCheckCustomTable" class="primary-btn" style="width: auto; height: 26px; padding: 0 10px; font-size: 11px; line-height: 26px; margin: 0;">Add Table</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-section hidden" id="aclResultsBox">
+                    <h3>Execution Console Output</h3>
+                    <pre id="aclOutput" class="console-output"></pre>
                 </div>
             </div>
 

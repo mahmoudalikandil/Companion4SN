@@ -136,7 +136,22 @@ body, html {
     background-color: #181a1f; color: #a5d6a7;
     padding: 15px; border-radius: 4px; font-family: monospace;
     font-size: 12px; white-space: pre-wrap; word-wrap: break-word;
-    max-height: 200px; overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+.results-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin-top: 15px;
+}
+.results-section h3 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: bold;
+    color: #303a46;
 }
 /* --- END PHASE 2 STYLES --- */
 .mb-5 { margin-bottom: 5px; }
@@ -192,4 +207,95 @@ body, html {
 .checkbox-grid input[type="checkbox"] {
     cursor: pointer;
     margin: 0;
+}
+
+/* --- ACL ANALYZER UI --- */
+.role-tree-container {
+    font-size: 12px;
+    line-height: 1.5;
+}
+.tree-node {
+    margin-top: 4px;
+    position: relative;
+}
+.tree-node-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 4px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+.tree-node-header:hover {
+    background-color: #f0f4f4;
+}
+.tree-caret {
+    font-size: 9px;
+    color: #657575;
+    transition: transform 0.2s;
+    width: 10px;
+    display: inline-block;
+}
+.tree-caret.expanded {
+    transform: rotate(90deg);
+}
+.tree-children {
+    display: none;
+    margin-left: 8px;
+    border-left: 1px dashed #c1c8c8;
+    padding-left: 8px;
+}
+.tree-children.active {
+    display: block;
+}
+.tree-icon {
+    font-size: 11px;
+}
+.tree-group { color: #1b5c53; font-weight: bold; }
+.tree-role { color: #303a46; font-weight: 600; }
+.tree-contained { color: #657575; }
+
+/* Table Access Row */
+.table-access-row {
+    background: #f6f7f9;
+    border: 1px solid #e4e6ea;
+    border-radius: 4px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.table-access-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.table-name-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #303a46;
+}
+.crud-indicators {
+    display: flex;
+    gap: 4px;
+}
+.crud-badge {
+    font-size: 9px;
+    font-weight: bold;
+    padding: 1px 4px;
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+.crud-badge.allow { background-color: #e3f5e1; color: #2e7d32; }
+.crud-badge.deny { background-color: #ffebee; color: #c62828; cursor: help; }
+
+.acl-warning-box {
+    font-size: 10px;
+    background-color: #fff8e1;
+    border-left: 3px solid #ffb300;
+    color: #5d4037;
+    padding: 4px 6px;
+    border-radius: 3px;
+    margin-top: 4px;
+    line-height: 1.3;
 }
