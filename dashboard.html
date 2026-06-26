@@ -29,7 +29,8 @@
             <div class="tool-nav hidden" id="toolNav">
                 <h3>Developer Tools</h3>
                 <ul class="nav-list">
-                    <li data-target="panel-impersonate" class="active">Rapid Impersonator</li>
+                    <li data-target="panel-cloner" class="active">Catalog Item Cloner</li>
+                    <li data-target="panel-impersonate">Rapid Impersonator</li>
                     <li data-target="panel-bgscript">Background Script</li>
                     <li data-target="panel-updateset">Update Sets</li>
                     <li data-target="panel-schema">Schema Exporter</li>
@@ -195,6 +196,60 @@ while(gr.next()) {
                 <textarea id="xmlEditorArea" class="mt-15" spellcheck="false" placeholder="Paste your ServiceNow XML payload here..."></textarea>
                 
                 <div id="xmlStatus" style="margin-top: 10px; font-size: 13px; font-weight: bold;"></div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-cloner">
+                <div class="panel-header">
+                    <h2>Catalog Item Cloner</h2>
+                    <span class="badge">Server Script</span>
+                </div>
+
+                <div class="input-group full-width mt-10">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label>Source Catalog Item</label>
+                        <button id="btnDetectClonerSource" class="secondary-btn" style="padding: 2px 8px; font-size: 11px;">Auto-Detect</button>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 5px;">
+                        <input type="text" id="clonerSourceTable" placeholder="Table (e.g., sc_cat_item)" style="flex: 1;" readonly>
+                        <input type="text" id="clonerSourceSysId" placeholder="Sys ID" style="flex: 2;" readonly>
+                    </div>
+                    <input type="text" id="clonerSourceName" placeholder="Detected Item Name" class="mt-5" readonly>
+                </div>
+
+                <div class="input-group full-width mt-15">
+                    <label>New Catalog Item Name</label>
+                    <input type="text" id="clonerNewName" placeholder="Enter new catalog item name..." class="form-control">
+                </div>
+
+                <div class="input-group full-width mt-15">
+                    <label>Target Application Scope</label>
+                    <select id="clonerScopeSelect" class="form-control">
+                        <option value="global">Global</option>
+                    </select>
+                </div>
+
+                <div class="input-group full-width mt-15">
+                    <label>Related Lists to Clone</label>
+                    <div class="checkbox-grid mt-5">
+                        <label><input type="checkbox" id="chkClonerVariables" checked> Variables</label>
+                        <label><input type="checkbox" id="chkClonerVariableSets" checked> Variable Sets</label>
+                        <label><input type="checkbox" id="chkClonerUiPolicies" checked> UI Policies & Actions</label>
+                        <label><input type="checkbox" id="chkClonerClientScripts" checked> Client Scripts</label>
+                        <label><input type="checkbox" id="chkClonerUserCriteria" checked> User Criteria</label>
+                        <label><input type="checkbox" id="chkClonerCategories" checked> Catalogs & Categories</label>
+                        <label><input type="checkbox" id="chkClonerDataLookups" checked> Catalog Data Lookups</label>
+                        <label><input type="checkbox" id="chkClonerRelatedArticles"> Related Articles</label>
+                        <label><input type="checkbox" id="chkClonerRelatedItems"> Related Items</label>
+                        <label><input type="checkbox" id="chkClonerTopics"> Assigned Topics</label>
+                    </div>
+                </div>
+
+                <button id="btnRunClone" class="primary-btn mt-15" style="width: 100%;">Execute Clone</button>
+                
+                <div class="results-section hidden" id="clonerResultsBox" style="margin-top: 15px;">
+                    <h3>Execution Console Output</h3>
+                    <pre id="clonerOutput" class="console-output" style="max-height: 180px;"></pre>
+                </div>
             </div>
 
         </section>

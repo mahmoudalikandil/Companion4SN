@@ -163,9 +163,370 @@ const SNOW_API = {
         
         console.log(`[API] Response received. Found ${data.result ? data.result.length : 0} records.`);
         return data.result;
+    },
+
+    cloneCatalogItem: async function (config) {
+        const script = `(function() {
+    var config = {
+        source_id: '${config.source_id}',
+        table: '${config.table}',
+        new_name: '${config.new_name}',
+        options: {
+            variables: ${config.options.variables},
+            variable_sets: ${config.options.variable_sets},
+            ui_policies: ${config.options.ui_policies},
+            client_scripts: ${config.options.client_scripts},
+            user_criteria: ${config.options.user_criteria},
+            categories: ${config.options.categories},
+            data_lookups: ${config.options.data_lookups},
+            related_articles: ${config.options.related_articles},
+            related_items: ${config.options.related_items},
+            topics: ${config.options.topics}
+        }
+    };
+
+    gs.print('>>>START_CLONE<<<');
+    
+    try {
+        var sourceGr = new GlideRecord(config.table);
+        if (!sourceGr.get(config.source_id)) {
+            throw new Error('Source Catalog Item not found.');
+        }
+
+        // 1. Clone Catalog Item itself
+        var newGr = new GlideRecord(config.table);
+        newGr.initialize();
+        
+        var fields = sourceGr.getFields();
+        for (var i = 0; i < fields.size(); i++) {
+            var field = fields.get(i);
+            var name = field.getName();
+            if (sourceGr.isValidField(name) && name !== 'sys_id' && name !== 'number' && name !== 'sys_scope' && name !== 'sys_package') {
+                newGr.setValue(name, sourceGr.getValue(name));
+            }
+        }
+        newGr.setValue('name', config.new_name);
+        var newCatItemSysId = newGr.insert();
+        if (!newCatItemSysId) {
+            throw new Error('Failed to create cloned Catalog Item record.');
+        }
+        gs.print('[SUCCESS] Created Catalog Item: ' + config.new_name + ' [sys_id: ' + newCatItemSysId + ']');
+
+        var varMap = {};
+        var policyMap = {};
+
+        // 2. Clone Variables (item_option_new)
+        if (config.options.variables) {
+            var varGr = new GlideRecord('item_option_new');
+            varGr.addQuery('cat_item', config.source_id);
+            varGr.query();
+            while (varGr.next()) {
+                var oldVarId = varGr.getUniqueValue();
+                var newVarGr = new GlideRecord('item_option_new');
+                newVarGr.initialize();
+                
+                var vFields = varGr.getFields();
+                for (var j = 0; j < vFields.size(); j++) {
+                    var vName = vFields.get(j).getName();
+                    if (varGr.isValidField(vName) && vName !== 'sys_id' && vName !== 'cat_item' && vName !== 'sys_scope' && vName !== 'sys_package') {
+                        newVarGr.setValue(vName, varGr.getValue(vName));
+                    }
+                }
+                newVarGr.setValue('cat_item', newCatItemSysId);
+                var newVarId = newVarGr.insert();
+                if (newVarId) {
+                    varMap[oldVarId] = newVarId;
+                    gs.print('[SUCCESS] Cloned Variable: ' + varGr.getValue('name') + ' [sys_id: ' + newVarId + ']');
+                } else {
+                    gs.print('[ERROR] Failed to clone variable: ' + varGr.getValue('name'));
+                }
+            }
+        }
+
+        // 3. Clone Variable Set Links (io_set_item)
+        if (config.options.variable_sets) {
+            var setGr = new GlideRecord('io_set_item');
+            setGr.addQuery('sc_cat_item', config.source_id);
+            setGr.query();
+            while (setGr.next()) {
+                var newSetGr = new GlideRecord('io_set_item');
+                newSetGr.initialize();
+                
+                var sFields = setGr.getFields();
+                for (var k = 0; k < sFields.size(); k++) {
+                    var sName = sFields.get(k).getName();
+                    if (setGr.isValidField(sName) && sName !== 'sys_id' && sName !== 'sc_cat_item' && sName !== 'sys_scope' && sName !== 'sys_package') {
+                        newSetGr.setValue(sName, setGr.getValue(sName));
+                    }
+                }
+                newSetGr.setValue('sc_cat_item', newCatItemSysId);
+                var newSetLinkId = newSetGr.insert();
+                if (newSetLinkId) {
+                    gs.print('[SUCCESS] Linked Variable Set: ' + setGr.variable_set.getDisplayValue());
+                }
+            }
+        }
+
+        // 4. Clone Catalog UI Policies (catalog_ui_policy)
+        if (config.options.ui_policies) {
+            var policyGr = new GlideRecord('catalog_ui_policy');
+            policyGr.addQuery('catalog_item', config.source_id);
+            policyGr.query();
+            while (policyGr.next()) {
+                var oldPolicyId = policyGr.getUniqueValue();
+                var newPolicyGr = new GlideRecord('catalog_ui_policy');
+                newPolicyGr.initialize();
+                
+                var pFields = policyGr.getFields();
+                for (var l = 0; l < pFields.size(); l++) {
+                    var pName = pFields.get(l).getName();
+                    if (policyGr.isValidField(pName) && pName !== 'sys_id' && pName !== 'catalog_item' && pName !== 'sys_scope' && pName !== 'sys_package') {
+                        newPolicyGr.setValue(pName, policyGr.getValue(pName));
+                    }
+                }
+                newPolicyGr.setValue('catalog_item', newCatItemSysId);
+                
+                // Translate old variables to new variables in policy conditions (e.g. IO:sys_id=value)
+                var oldConditions = policyGr.getValue('catalog_conditions');
+                if (oldConditions) {
+                    for (var oldVarId in varMap) {
+                        oldConditions = oldConditions.split(oldVarId).join(varMap[oldVarId]);
+                    }
+                    newPolicyGr.setValue('catalog_conditions', oldConditions);
+                }
+                
+                var newPolicyId = newPolicyGr.insert();
+                if (newPolicyId) {
+                    policyMap[oldPolicyId] = newPolicyId;
+                    gs.print('[SUCCESS] Cloned UI Policy: ' + policyGr.getValue('short_description'));
+                    
+                    // Clone UI Policy Actions (catalog_ui_policy_action)
+                    var actionGr = new GlideRecord('catalog_ui_policy_action');
+                    actionGr.addQuery('ui_policy', oldPolicyId);
+                    actionGr.query();
+                    while (actionGr.next()) {
+                        var newActionGr = new GlideRecord('catalog_ui_policy_action');
+                        newActionGr.initialize();
+                        
+                        var aFields = actionGr.getFields();
+                        for (var m = 0; m < aFields.size(); m++) {
+                            var aName = aFields.get(m).getName();
+                            if (actionGr.isValidField(aName) && aName !== 'sys_id' && aName !== 'ui_policy' && aName !== 'catalog_variable' && aName !== 'sys_scope' && aName !== 'sys_package') {
+                                newActionGr.setValue(aName, actionGr.getValue(aName));
+                            }
+                        }
+                        newActionGr.setValue('ui_policy', newPolicyId);
+                        // Map the variable reference to the cloned variable sys_id
+                        var oldVarRef = actionGr.getValue('catalog_variable');
+                        if (oldVarRef && varMap[oldVarRef]) {
+                            newActionGr.setValue('catalog_variable', varMap[oldVarRef]);
+                        } else {
+                            newActionGr.setValue('catalog_variable', oldVarRef); // Fallback to same if variable set variable
+                        }
+                        newActionGr.insert();
+                    }
+                }
+            }
+        }
+
+        // 5. Clone Catalog Client Scripts (catalog_script_client)
+        if (config.options.client_scripts) {
+            var clientScriptGr = new GlideRecord('catalog_script_client');
+            clientScriptGr.addQuery('cat_item', config.source_id);
+            clientScriptGr.query();
+            while (clientScriptGr.next()) {
+                var newScriptGr = new GlideRecord('catalog_script_client');
+                newScriptGr.initialize();
+                
+                var csFields = clientScriptGr.getFields();
+                for (var n = 0; n < csFields.size(); n++) {
+                    var csName = csFields.get(n).getName();
+                    if (clientScriptGr.isValidField(csName) && csName !== 'sys_id' && csName !== 'cat_item' && csName !== 'cat_variable' && csName !== 'sys_scope' && csName !== 'sys_package') {
+                        newScriptGr.setValue(csName, clientScriptGr.getValue(csName));
+                    }
+                }
+                newScriptGr.setValue('cat_item', newCatItemSysId);
+                
+                // Map the variable reference for onChange client scripts
+                var oldVarRef = clientScriptGr.getValue('cat_variable');
+                if (oldVarRef && varMap[oldVarRef]) {
+                    newScriptGr.setValue('cat_variable', varMap[oldVarRef]);
+                } else {
+                    newScriptGr.setValue('cat_variable', oldVarRef);
+                }
+                
+                var newScriptId = newScriptGr.insert();
+                if (newScriptId) {
+                    gs.print('[SUCCESS] Cloned Client Script: ' + clientScriptGr.getValue('name'));
+                }
+            }
+        }
+
+        // 6. Clone User Criteria
+        if (config.options.user_criteria) {
+            // Available For
+            var availGr = new GlideRecord('sc_cat_item_user_criteria_mtom');
+            availGr.addQuery('sc_cat_item', config.source_id);
+            availGr.query();
+            while (availGr.next()) {
+                var newAvailGr = new GlideRecord('sc_cat_item_user_criteria_mtom');
+                newAvailGr.initialize();
+                newAvailGr.setValue('sc_cat_item', newCatItemSysId);
+                newAvailGr.setValue('user_criteria', availGr.getValue('user_criteria'));
+                newAvailGr.insert();
+            }
+            // Not Available For
+            var notAvailGr = new GlideRecord('sc_cat_item_user_criteria_no_mtom');
+            notAvailGr.addQuery('sc_cat_item', config.source_id);
+            notAvailGr.query();
+            while (notAvailGr.next()) {
+                var newNotAvailGr = new GlideRecord('sc_cat_item_user_criteria_no_mtom');
+                newNotAvailGr.initialize();
+                newNotAvailGr.setValue('sc_cat_item', newCatItemSysId);
+                newNotAvailGr.setValue('user_criteria', notAvailGr.getValue('user_criteria'));
+                newNotAvailGr.insert();
+            }
+            gs.print('[SUCCESS] Cloned User Criteria links.');
+        }
+
+        // 7. Clone Catalog Links and Category Links
+        if (config.options.categories) {
+            // Catalogs
+            var catLinkGr = new GlideRecord('sc_cat_item_catalog');
+            catLinkGr.addQuery('sc_cat_item', config.source_id);
+            catLinkGr.query();
+            while (catLinkGr.next()) {
+                var newCatLinkGr = new GlideRecord('sc_cat_item_catalog');
+                newCatLinkGr.initialize();
+                newCatLinkGr.setValue('sc_cat_item', newCatItemSysId);
+                newCatLinkGr.setValue('sc_catalog', catLinkGr.getValue('sc_catalog'));
+                newCatLinkGr.insert();
+            }
+            // Categories
+            var catGr = new GlideRecord('sc_cat_item_category');
+            catGr.addQuery('sc_cat_item', config.source_id);
+            catGr.query();
+            while (catGr.next()) {
+                var newCatGr = new GlideRecord('sc_cat_item_category');
+                newCatGr.initialize();
+                newCatGr.setValue('sc_cat_item', newCatItemSysId);
+                newCatGr.setValue('sc_category', catGr.getValue('sc_category'));
+                newCatGr.insert();
+            }
+            gs.print('[SUCCESS] Cloned Catalog & Category relations.');
+        }
+
+        // 8. Clone Catalog Data Lookup Definitions
+        if (config.options.data_lookups) {
+            var lookupGr = new GlideRecord('dl_definition_sc_csc');
+            lookupGr.addQuery('catalog_item', config.source_id);
+            lookupGr.query();
+            while (lookupGr.next()) {
+                var newLookupGr = new GlideRecord('dl_definition_sc_csc');
+                newLookupGr.initialize();
+                
+                var lFields = lookupGr.getFields();
+                for (var o = 0; o < lFields.size(); o++) {
+                    var lName = lFields.get(o).getName();
+                    if (lookupGr.isValidField(lName) && lName !== 'sys_id' && lName !== 'catalog_item' && lName !== 'catalog_variable' && lName !== 'sys_scope' && lName !== 'sys_package') {
+                        newLookupGr.setValue(lName, lookupGr.getValue(lName));
+                    }
+                }
+                newLookupGr.setValue('catalog_item', newCatItemSysId);
+                
+                // Map the variable reference for Catalog Data Lookups
+                var oldVarRef = lookupGr.getValue('catalog_variable');
+                if (oldVarRef && varMap[oldVarRef]) {
+                    newLookupGr.setValue('catalog_variable', varMap[oldVarRef]);
+                } else {
+                    newLookupGr.setValue('catalog_variable', oldVarRef);
+                }
+                
+                newLookupGr.insert();
+            }
+            gs.print('[SUCCESS] Cloned Catalog Data Lookup definitions.');
+        }
+
+        // 9. Clone Related Articles
+        if (config.options.related_articles) {
+            var articleGr = new GlideRecord('kb_2_sc_candidate');
+            articleGr.addQuery('sc_cat_item', config.source_id);
+            articleGr.query();
+            while (articleGr.next()) {
+                var newArticleGr = new GlideRecord('kb_2_sc_candidate');
+                newArticleGr.initialize();
+                
+                var aFields = articleGr.getFields();
+                for (var p = 0; p < aFields.size(); p++) {
+                    var aName = aFields.get(p).getName();
+                    if (articleGr.isValidField(aName) && aName !== 'sys_id' && aName !== 'sc_cat_item' && aName !== 'sys_scope' && aName !== 'sys_package') {
+                        newArticleGr.setValue(aName, articleGr.getValue(aName));
+                    }
+                }
+                newArticleGr.setValue('sc_cat_item', newCatItemSysId);
+                newArticleGr.insert();
+            }
+            gs.print('[SUCCESS] Cloned Related Articles.');
+        }
+
+        // 10. Clone Related Catalog Items
+        if (config.options.related_items) {
+            var relGr = new GlideRecord('sc_cat_item_relation');
+            relGr.addQuery('sc_cat_item', config.source_id).addOrCondition('related_cat_item', config.source_id);
+            relGr.query();
+            while (relGr.next()) {
+                var newRelGr = new GlideRecord('sc_cat_item_relation');
+                newRelGr.initialize();
+                
+                var rFields = relGr.getFields();
+                for (var q = 0; q < rFields.size(); q++) {
+                    var rName = rFields.get(q).getName();
+                    if (relGr.isValidField(rName) && rName !== 'sys_id' && rName !== 'sys_scope' && rName !== 'sys_package') {
+                        newRelGr.setValue(rName, relGr.getValue(rName));
+                    }
+                }
+                if (relGr.getValue('sc_cat_item') === config.source_id) {
+                    newRelGr.setValue('sc_cat_item', newCatItemSysId);
+                }
+                if (relGr.getValue('related_cat_item') === config.source_id) {
+                    newRelGr.setValue('related_cat_item', newCatItemSysId);
+                }
+                newRelGr.insert();
+            }
+            gs.print('[SUCCESS] Cloned Related Catalog Items.');
+        }
+
+        // 11. Clone Assigned Topics
+        if (config.options.topics) {
+            var topicGr = new GlideRecord('topic_item_association');
+            topicGr.addQuery('item', config.source_id);
+            topicGr.query();
+            while (topicGr.next()) {
+                var newTopicGr = new GlideRecord('topic_item_association');
+                newTopicGr.initialize();
+                
+                var tFields = topicGr.getFields();
+                for (var r = 0; r < tFields.size(); r++) {
+                    var tName = tFields.get(r).getName();
+                    if (topicGr.isValidField(tName) && tName !== 'sys_id' && tName !== 'item' && tName !== 'sys_scope' && tName !== 'sys_package') {
+                        newTopicGr.setValue(tName, topicGr.getValue(tName));
+                    }
+                }
+                newTopicGr.setValue('item', newCatItemSysId);
+                newTopicGr.insert();
+            }
+            gs.print('[SUCCESS] Cloned Assigned Topics.');
+        }
+
+        gs.print('>>>CLONE_SUCCESS:' + newCatItemSysId + '<<<');
+
+    } catch (e) {
+        gs.print('[ERROR] Script Failed: ' + e.message);
+        gs.print('>>>CLONE_ERROR<<<');
     }
-
-
+})();`;
+        return await this.runBackgroundScript(script, config.scope);
+    }
 };
 
 window.SNOW_API = SNOW_API;

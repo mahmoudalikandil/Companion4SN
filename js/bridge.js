@@ -31,7 +31,7 @@ const SNOW_Bridge = {
     _extractSnowData: function() {
         console.log("[Bridge Content] Scanning window for table data...");
         let tableName = null;
-        let flowContextId = null; // NEW: Variable for Flow Tracking
+        let flowContextId = null; // Variable for Flow Tracking
         const ignoreList = ['nav_to', 'sys_scripts', 'sys_update_set', 'ui_page', 'start', 'cancel'];
 
         // 1. Detect standard variables
@@ -47,7 +47,7 @@ const SNOW_Bridge = {
                     const match = src.match(/\/([a-zA-Z0-9_]+)\.do/);
                     if (match && match[1]) tableName = match[1].replace(/_list$/, ''); 
                     
-                    // NEW: Check if Iframe is on a Flow Context record
+                    // Check if Iframe is on a Flow Context record
                     const searchParams = new URLSearchParams(iframe.contentWindow.location.search);
                     if (tableName === 'sys_flow_context' && searchParams.has('sys_id')) {
                         flowContextId = searchParams.get('sys_id');
@@ -62,7 +62,7 @@ const SNOW_Bridge = {
             const match = href.match(/[\/]([a-zA-Z0-9_]+)\.do/);
             if (match && match[1]) tableName = match[1].replace(/_list$/, '');
             
-            // NEW: Detect Next Experience / Polaris UI Builder Flow Execution URL
+            // Detect Next Experience / Polaris UI Builder Flow Execution URL
             const urlParams = new URLSearchParams(window.location.search);
             if (tableName === 'sys_flow_context' && urlParams.has('sys_id')) {
                 flowContextId = urlParams.get('sys_id');
@@ -74,11 +74,87 @@ const SNOW_Bridge = {
 
         if (ignoreList.includes(tableName)) tableName = null;
 
+        // --- NEW: CATALOG ITEM AUTO-DETECTION ---
+        let catItemSysId = null;
+        let catItemName = null;
+        let catItemTable = null;
+
+        const scTables = ['sc_cat_item', 'sc_cat_item_producer', 'sc_cat_item_guide', 'sc_cat_item_content', 'std_change_record_producer'];
+        
+        const extractFromGForm = (gf) => {
+            if (gf && gf.getTableName && gf.getUniqueValue) {
+                const tbl = gf.getTableName();
+                if (scTables.includes(tbl) || tbl.startsWith('sc_cat_item')) {
+                    catItemTable = tbl;
+                    catItemSysId = gf.getUniqueValue();
+                    if (gf.getValue) catItemName = gf.getValue('name');
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // Check top window g_form
+        if (typeof g_form !== 'undefined') {
+            extractFromGForm(g_form);
+        }
+
+        // Check iframe window g_form
+        if (!catItemSysId) {
+            try {
+                const iframe = document.getElementById('gsft_main');
+                if (iframe && iframe.contentWindow && iframe.contentWindow.g_form) {
+                    extractFromGForm(iframe.contentWindow.g_form);
+                }
+            } catch(e) {}
+        }
+
+        // URL parsing fallback
+        if (!catItemSysId) {
+            try {
+                const urlSrc = window.location.href;
+                const iframe = document.getElementById('gsft_main');
+                const iframeSrc = iframe ? (iframe.contentWindow.location.href || iframe.getAttribute('src') || '') : '';
+                
+                const parseUrl = (url) => {
+                    const match = url.match(/\/([a-zA-Z0-9_]+)\.do/);
+                    if (match && match[1]) {
+                        const tbl = match[1];
+                        if (scTables.includes(tbl) || tbl.startsWith('sc_cat_item')) {
+                            const searchParams = new URLSearchParams(url.split('?')[1] || '');
+                            if (searchParams.has('sys_id')) {
+                                catItemTable = tbl;
+                                catItemSysId = searchParams.get('sys_id');
+                            }
+                        }
+                    }
+                };
+                
+                parseUrl(urlSrc);
+                if (!catItemSysId && iframeSrc) {
+                    parseUrl(iframeSrc);
+                }
+            } catch(e) {}
+        }
+
+        // Name fallback from document title
+        if (catItemSysId && !catItemName) {
+            try {
+                const docTitle = document.title;
+                if (docTitle && docTitle !== 'ServiceNow') {
+                    catItemName = docTitle.split(' | ')[0];
+                }
+            } catch(e) {}
+        }
+
         return {
             url: window.location.origin,
             token: window.g_ck || null,
             table: tableName,
-            flowSysId: flowContextId // Passes the Flow ID back to popup
+            flowSysId: flowContextId, // Passes the Flow ID back to popup
+            catItemSysId: catItemSysId,
+            catItemName: catItemName,
+            catItemTable: catItemTable
         };
     }
 };

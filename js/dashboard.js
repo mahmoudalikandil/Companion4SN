@@ -35,6 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnTrackFlow = document.getElementById('btnTrackFlow');
     const flowTrackerStatus = document.getElementById('flowTrackerStatus');
 
+    const clonerSourceTable = document.getElementById('clonerSourceTable');
+    const clonerSourceSysId = document.getElementById('clonerSourceSysId');
+    const clonerSourceName = document.getElementById('clonerSourceName');
+    const btnDetectClonerSource = document.getElementById('btnDetectClonerSource');
+    const clonerNewName = document.getElementById('clonerNewName');
+    const clonerScopeSelect = document.getElementById('clonerScopeSelect');
+    const btnRunClone = document.getElementById('btnRunClone');
+    const clonerResultsBox = document.getElementById('clonerResultsBox');
+    const clonerOutput = document.getElementById('clonerOutput');
+
     let scopesLoaded = false;
     let currentScopeId = 'global';
 
@@ -72,7 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 flowTrackerStatus.textContent = "Flow Execution Context auto-detected!";
             }
 
-            switchPanel('panel-impersonate');
+            // Cloner Auto-Detect Injection
+            if (window.activeInstanceData.catItemSysId) {
+                clonerSourceTable.value = window.activeInstanceData.catItemTable || '';
+                clonerSourceSysId.value = window.activeInstanceData.catItemSysId || '';
+                clonerSourceName.value = window.activeInstanceData.catItemName || '';
+            }
+
+            switchPanel('panel-cloner');
         } catch (error) {
             connStatus.textContent = "Connection Failed";
             connStatus.className = "status-indicator error";
@@ -96,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else p.classList.add('hidden');
         });
 
-        if (panelId === 'panel-updateset' && !scopesLoaded && window.activeInstanceData) {
+        if ((panelId === 'panel-updateset' || panelId === 'panel-cloner') && !scopesLoaded && window.activeInstanceData) {
             loadScopes();
         }
     }
@@ -228,14 +245,23 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadScopes() {
         try {
             scopeSelect.innerHTML = '<option>Loading...</option>';
+            if (clonerScopeSelect) clonerScopeSelect.innerHTML = '<option>Loading...</option>';
             const scopes = await window.SNOW_API.fetchScopes();
             
             scopeSelect.innerHTML = '';
+            if (clonerScopeSelect) clonerScopeSelect.innerHTML = '';
             scopes.forEach(scope => {
                 const opt = document.createElement('option');
                 opt.value = scope.sys_id;
                 opt.textContent = scope.name;
                 scopeSelect.appendChild(opt);
+
+                if (clonerScopeSelect) {
+                    const optCloner = document.createElement('option');
+                    optCloner.value = scope.sys_id;
+                    optCloner.textContent = scope.name;
+                    clonerScopeSelect.appendChild(optCloner);
+                }
             });
 
             scopeSelect.disabled = false;
@@ -245,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadUpdateSets(scopeSelect.value);
         } catch (error) {
             scopeSelect.innerHTML = `<option>Error loading scopes</option>`;
+            if (clonerScopeSelect) clonerScopeSelect.innerHTML = `<option>Error loading scopes</option>`;
         }
     }
 
@@ -623,6 +650,81 @@ document.addEventListener('DOMContentLoaded', () => {
     if (flowSysIdInput) {
         flowSysIdInput.addEventListener('input', (e) => {
             btnTrackFlow.disabled = (e.target.value.trim().length !== 32); 
+        });
+    }
+
+    if (btnDetectClonerSource) {
+        btnDetectClonerSource.addEventListener('click', () => {
+            if (window.activeInstanceData && window.activeInstanceData.catItemSysId) {
+                clonerSourceTable.value = window.activeInstanceData.catItemTable || '';
+                clonerSourceSysId.value = window.activeInstanceData.catItemSysId || '';
+                clonerSourceName.value = window.activeInstanceData.catItemName || '';
+            } else {
+                alert("Could not auto-detect a Catalog Item on the active tab.");
+            }
+        });
+    }
+
+    if (btnRunClone) {
+        btnRunClone.addEventListener('click', async () => {
+            const sourceId = clonerSourceSysId.value.trim();
+            const table = clonerSourceTable.value.trim();
+            const newName = clonerNewName.value.trim();
+            const scope = clonerScopeSelect.value;
+
+            if (!sourceId || !table) {
+                return alert("Please select or auto-detect a source Catalog Item first.");
+            }
+            if (!newName) {
+                return alert("Please enter a name for the new Catalog Item.");
+            }
+
+            btnRunClone.textContent = "Cloning...";
+            btnRunClone.disabled = true;
+            clonerResultsBox.classList.remove('hidden');
+            clonerOutput.textContent = "Initiating clone transaction on server...\n";
+
+            try {
+                const config = {
+                    source_id: sourceId,
+                    table: table,
+                    new_name: newName,
+                    scope: scope,
+                    options: {
+                        variables: document.getElementById('chkClonerVariables').checked,
+                        variable_sets: document.getElementById('chkClonerVariableSets').checked,
+                        ui_policies: document.getElementById('chkClonerUiPolicies').checked,
+                        client_scripts: document.getElementById('chkClonerClientScripts').checked,
+                        user_criteria: document.getElementById('chkClonerUserCriteria').checked,
+                        categories: document.getElementById('chkClonerCategories').checked,
+                        data_lookups: document.getElementById('chkClonerDataLookups').checked,
+                        related_articles: document.getElementById('chkClonerRelatedArticles').checked,
+                        related_items: document.getElementById('chkClonerRelatedItems').checked,
+                        topics: document.getElementById('chkClonerTopics').checked
+                    }
+                };
+
+                const output = await window.SNOW_API.cloneCatalogItem(config);
+                clonerOutput.textContent = output;
+
+                if (output.includes(">>>CLONE_SUCCESS:")) {
+                    const match = output.match(/>>>CLONE_SUCCESS:([a-f0-9]{32})<<</);
+                    const newSysId = match ? match[1] : '';
+                    clonerOutput.textContent += `\n[SUCCESS] Catalog Item Cloned Successfully!`;
+                    
+                    if (newSysId && window.activeInstanceData) {
+                        const newUrl = `${window.activeInstanceData.url}/${table}.do?sys_id=${newSysId}`;
+                        clonerOutput.innerHTML += `\n\n<a href="${newUrl}" target="_blank" style="color: #4fc3f7; text-decoration: underline; font-weight: bold;">Open Cloned Item Form in Browser</a>`;
+                    }
+                } else if (output.includes(">>>CLONE_ERROR<<<")) {
+                    clonerOutput.textContent += `\n[ERROR] Cloning process encountered errors on the server.`;
+                }
+            } catch (error) {
+                clonerOutput.textContent += `\n[CRITICAL ERROR] Connection failed: ${error.message}`;
+            }
+
+            btnRunClone.textContent = "Execute Clone";
+            btnRunClone.disabled = false;
         });
     }
 

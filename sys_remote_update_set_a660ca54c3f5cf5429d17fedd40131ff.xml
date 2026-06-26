@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><unload unload_date="2026-06-26 17:01:56">
+<sys_remote_update_set action="INSERT_OR_UPDATE">
+<application display_value="Global">global</application>
+<application_name>Global</application_name>
+<application_scope>global</application_scope>
+<application_version/>
+<collisions/>
+<commit_date/>
+<deleted/>
+<description/>
+<inserted/>
+<name>Hossam POC</name>
+<origin_sys_id/>
+<parent display_value=""/>
+<release_date/>
+<remote_base_update_set display_value=""/>
+<remote_parent_id/>
+<remote_sys_id>f09cb15cc3b5cf5429d17fedd4013121</remote_sys_id>
+<state>loaded</state>
+<summary/>
+<sys_class_name>sys_remote_update_set</sys_class_name>
+<sys_created_by>Mahmoud.qanadeel@plat4mation.com</sys_created_by>
+<sys_created_on>2026-06-26 17:01:42</sys_created_on>
+<sys_id>a660ca54c3f5cf5429d17fedd40131ff</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_updated_by>Mahmoud.qanadeel@plat4mation.com</sys_updated_by>
+<sys_updated_on>2026-06-26 17:01:42</sys_updated_on>
+<update_set display_value=""/>
+<update_source display_value=""/>
+<updated/>
+</sys_remote_update_set>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sc_cat_item_catalog_a3bc3994c3b5cf5429d17fedd4013158</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sc_cat_item_catalog"><sc_cat_item_catalog action="INSERT_OR_UPDATE"><sc_cat_item display_value="Hossam Service POC">abbc3994c3b5cf5429d17fedd4013152</sc_cat_item><sc_catalog display_value="Service Catalog">e0d08b13c3330100c8b837659bba8fb4</sc_catalog><sys_class_name>sc_cat_item_catalog</sys_class_name><sys_created_by>Mahmoud.qanadeel@plat4mation.com</sys_created_by><sys_created_on>2026-06-26 16:45:39</sys_created_on><sys_id>a3bc3994c3b5cf5429d17fedd4013158</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Service Catalog.Hossam Service POC</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sc_cat_item_catalog_a3bc3994c3b5cf5429d17fedd4013158</sys_update_name><sys_updated_by>Mahmoud.qanadeel@plat4mation.com</sys_updated_by><sys_updated_on>2026-06-26 16:45:39</sys_updated_on></sc_cat_item_catalog></record_update>]]></payload>
+<payload_hash>-376261881</payload_hash>
+<remote_update_set display_value="Hossam POC">a660ca54c3f5cf5429d17fedd40131ff</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>Mahmoud.qanadeel@plat4mation.com</sys_created_by>
+<sys_created_on>2026-06-26 17:01:42</sys_created_on>
+<sys_id>22600e54c3f5cf5429d17fedd4013100</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>19f04d29ee30000001</sys_recorded_at>
+<sys_updated_by>Mahmoud.qanadeel@plat4mation.com</sys_updated_by>
+<sys_updated_on>2026-06-26 17:01:42</sys_updated_on>
+<table/>
+<target_name>Service Catalog.Hossam Service POC</target_name>
+<type>Catalog Items Catalog</type>
+<update_domain>global</update_domain>
+<update_guid>63bc795c38b5cf5443b8234facfa6e15</update_guid>
+<update_guid_history>63bc795c38b5cf5443b8234facfa6e15:-376261881</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sc_cat_item_category_27bc795cc3b5cf5429d17fedd4013117</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sc_cat_item_category"><sc_cat_item_category action="INSERT_OR_UPDATE"><sc_cat_item display_value="Hossam Service POC">abbc3994c3b5cf5429d17fedd4013152</sc_cat_item><sc_category display_value="Ad-hoc &amp; Planned Demands">b83e0db7c391c7d029d17fedd4013174</sc_category><sys_class_name>sc_cat_item_category</sys_class_name><sys_created_by>Mahmoud.qanadeel@plat4mation.com</sys_created_by><sys_created_on>2026-06-26 16:45:39</sys_created_on><sys_id>27bc795cc3b5cf5429d17fedd4013117</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Ad-hoc &amp; Planned Demands.Hossam Service POC</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sc_cat_item_category_27bc795cc3b5cf5429d17fedd4013117</sys_update_name><sys_updated_by>Mahmoud.qanadeel@plat4mation.com</sys_updated_by><sys_updated_on>2026-06-26 16:45:39</sys_updated_on></sc_cat_item_category></record_update>]]></payload>
+<payload_hash>-172110820</payload_hash>
+<remote_update_set display_value="Hossam POC">a660ca54c3f5cf5429d17fedd40131ff</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>Mahmoud.qanadeel@plat4mation.com</sys_created_by>
+<sys_created_on>2026-06-26 17:01:42</sys_created_on>
+<sys_id>66600e54c3f5cf5429d17fedd4013100</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>19f04d2a0950000001</sys_recorded_at>
+<sys_updated_by>Mahmoud.qanadeel@plat4mation.com</sys_updated_by>
+<sys_updated_on>2026-06-26 17:01:42</sys_updated_on>
+<table/>
+<target_name>Ad-hoc &amp; Planned Demands.Hossam Service POC</target_name>
+<type>Catalog Item Category</type>
+<update_domain>global</update_domain>
+<update_guid>e3bc795c32b5cf5423e7bc8142195b1c</update_guid>
+<update_guid_history>e3bc795c32b5cf5423e7bc8142195b1c:-172110820</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sc_cat_item_abbc3994c3b5cf5429d17fedd4013152</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sc_cat_item"&gt;&lt;sc_cat_item action="INSERT_OR_UPDATE"&gt;&lt;access_type&gt;restricted&lt;/access_type&gt;&lt;active&gt;true&lt;/active&gt;&lt;availability&gt;on_desktop&lt;/availability&gt;&lt;billable&gt;false&lt;/billable&gt;&lt;category display_value="Ad-hoc &amp;amp; Planned Demands"&gt;b83e0db7c391c7d029d17fedd4013174&lt;/category&gt;&lt;cc_render_type/&gt;&lt;checked_out&gt;false&lt;/checked_out&gt;&lt;cost&gt;0&lt;/cost&gt;&lt;custom_cart/&gt;&lt;delivery_plan/&gt;&lt;delivery_plan_script/&gt;&lt;delivery_time&gt;1970-01-01 00:00:00&lt;/delivery_time&gt;&lt;description&gt;&lt;![CDATA[&lt;p&gt;The Demand Planning phase is a structured annual process that enables departments to submit their planned demands for the upcoming year through the ServiceNow Service Catalog.&lt;/p&gt;]]&gt;&lt;/description&gt;&lt;display_price_property&gt;non_zero&lt;/display_price_property&gt;&lt;entitlement_script/&gt;&lt;flow_designer_flow display_value="Demand Planning"&gt;c252ce3fc359c7d029d17fedd401314f&lt;/flow_designer_flow&gt;&lt;fulfillment_automation_level&gt;semi_automated&lt;/fulfillment_automation_level&gt;&lt;group/&gt;&lt;hide_sp&gt;false&lt;/hide_sp&gt;&lt;icon/&gt;&lt;ignore_price&gt;true&lt;/ignore_price&gt;&lt;image/&gt;&lt;location/&gt;&lt;make_item_non_conversational&gt;false&lt;/make_item_non_conversational&gt;&lt;mandatory_attachment&gt;false&lt;/mandatory_attachment&gt;&lt;meta/&gt;&lt;mobile_hide_price&gt;false&lt;/mobile_hide_price&gt;&lt;mobile_picture/&gt;&lt;mobile_picture_type&gt;use_desktop_picture&lt;/mobile_picture_type&gt;&lt;model/&gt;&lt;name&gt;Hossam Service POC&lt;/name&gt;&lt;no_attachment_v2&gt;false&lt;/no_attachment_v2&gt;&lt;no_cart&gt;false&lt;/no_cart&gt;&lt;no_cart_v2&gt;true&lt;/no_cart_v2&gt;&lt;no_delivery_time_v2&gt;true&lt;/no_delivery_time_v2&gt;&lt;no_order&gt;false&lt;/no_order&gt;&lt;no_order_now&gt;false&lt;/no_order_now&gt;&lt;no_proceed_checkout&gt;false&lt;/no_proceed_checkout&gt;&lt;no_quantity&gt;false&lt;/no_quantity&gt;&lt;no_quantity_v2&gt;true&lt;/no_quantity_v2&gt;&lt;no_save_as_draft&gt;true&lt;/no_save_as_draft&gt;&lt;no_search&gt;false&lt;/no_search&gt;&lt;no_wishlist_v2&gt;false&lt;/no_wishlist_v2&gt;&lt;omit_price&gt;false&lt;/omit_price&gt;&lt;order&gt;0&lt;/order&gt;&lt;ordered_item_link/&gt;&lt;owner display_value="System Administrator"&gt;6816f79cc0a8016401c5a33be04be441&lt;/owner&gt;&lt;picture/&gt;&lt;preview&gt;JavaScript: popupOpenStandard("com.glideapp.servicecatalog_cat_item_view.do?v=1&amp;amp;sysparm_id=abbc3994c3b5cf5429d17fedd4013152&amp;amp;sysparm_preview=true", "summary");&lt;/preview&gt;&lt;price&gt;0&lt;/price&gt;&lt;published_ref/&gt;&lt;recurring_frequency/&gt;&lt;request_method&gt;submit&lt;/request_method&gt;&lt;roles/&gt;&lt;sc_catalogs&gt;e0d08b13c3330100c8b837659bba8fb4&lt;/sc_catalogs&gt;&lt;sc_ic_item_staging/&gt;&lt;sc_ic_version/&gt;&lt;sc_template display_value=""&gt;500781879320221014d63b953489187e&lt;/sc_template&gt;&lt;secondary_owners/&gt;&lt;short_description&gt;Demand Planning&lt;/short_description&gt;&lt;show_variable_help_on_load&gt;false&lt;/show_variable_help_on_load&gt;&lt;start_closed&gt;false&lt;/start_closed&gt;&lt;state&gt;published&lt;/state&gt;&lt;sys_class_name&gt;sc_cat_item&lt;/sys_class_name&gt;&lt;sys_created_by&gt;Mahmoud.qanadeel@plat4mation.com&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-06-26 16:45:39&lt;/sys_created_on&gt;&lt;sys_id&gt;abbc3994c3b5cf5429d17fedd4013152&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;Hossam Service POC&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sc_cat_item_abbc3994c3b5cf5429d17fedd4013152&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;Mahmoud.qanadeel@plat4mation.com&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-06-26 16:45:39&lt;/sys_updated_on&gt;&lt;taxonomy_topic/&gt;&lt;template/&gt;&lt;template_manager_roles/&gt;&lt;type&gt;item&lt;/type&gt;&lt;use_sc_layout&gt;true&lt;/use_sc_layout&gt;&lt;vendor/&gt;&lt;version&gt;127&lt;/version&gt;&lt;visible_bundle&gt;true&lt;/visible_bundle&gt;&lt;visible_guide&gt;true&lt;/visible_guide&gt;&lt;visible_standalone&gt;true&lt;/visible_standalone&gt;&lt;workflow/&gt;&lt;/sc_cat_item&gt;&lt;sys_translated_text action="delete_multiple" query="documentkey=abbc3994c3b5cf5429d17fedd4013152"/&gt;&lt;fx_price action="delete_multiple" query="id=abbc3994c3b5cf5429d17fedd4013152"/&gt;&lt;fx_price action="INSERT_OR_UPDATE"&gt;&lt;amount&gt;0&lt;/amount&gt;&lt;currency display_value="USD"&gt;USD&lt;/currency&gt;&lt;field&gt;price&lt;/field&gt;&lt;id&gt;abbc3994c3b5cf5429d17fedd4013152&lt;/id&gt;&lt;parent/&gt;&lt;reference_amount&gt;0&lt;/reference_amount&gt;&lt;reference_currency display_value="USD"&gt;USD&lt;/reference_currency&gt;&lt;sys_created_by&gt;Mahmoud.qanadeel@plat4mation.com&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-06-26 16:45:39&lt;/sys_created_on&gt;&lt;sys_id&gt;efbc3994c3b5cf5429d17fedd4013154&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_updated_by&gt;Mahmoud.qanadeel@plat4mation.com&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-06-26 16:45:39&lt;/sys_updated_on&gt;&lt;table&gt;sc_cat_item&lt;/table&gt;&lt;type&gt;calculated&lt;/type&gt;&lt;/fx_price&gt;&lt;/record_update&gt;</payload>
+<payload_hash>638296027</payload_hash>
+<remote_update_set display_value="Hossam POC">a660ca54c3f5cf5429d17fedd40131ff</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>Mahmoud.qanadeel@plat4mation.com</sys_created_by>
+<sys_created_on>2026-06-26 17:01:42</sys_created_on>
+<sys_id>ea60ca54c3f5cf5429d17fedd40131ff</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>19f04d2a18f0000001</sys_recorded_at>
+<sys_updated_by>Mahmoud.qanadeel@plat4mation.com</sys_updated_by>
+<sys_updated_on>2026-06-26 17:01:42</sys_updated_on>
+<table/>
+<target_name>Hossam Service POC</target_name>
+<type>Catalog Item</type>
+<update_domain>global</update_domain>
+<update_guid>3fbc795ce8b5cf54911579476a649246</update_guid>
+<update_guid_history>3fbc795ce8b5cf54911579476a649246:638296027</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+</unload>
