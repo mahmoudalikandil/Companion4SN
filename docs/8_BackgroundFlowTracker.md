@@ -1,4 +1,4 @@
-# 7. Feature Specification: Background Flow Tracker
+# 8. Feature Specification: Background Flow Tracker
 
 ## 1. Executive Summary
 Flow Designer executions in ServiceNow run asynchronously. Developers tracking executions must wait on the "Flow Execution Details" page, clicking refresh continuously to check if steps have succeeded or failed. Closing the tab halts oversight and distracts developers.

@@ -1,4 +1,4 @@
-# 5. Feature Specification: Scope & Update Set Switcher
+# 6. Feature Specification: Scope & Update Set Switcher
 
 ## 1. Executive Summary
 Developing custom applications in ServiceNow requires trackable changes. Developers must ensure they are working in the correct Application Scope and saving modifications to the correct active Update Set. Switching these settings inside ServiceNow normally requires opening the settings picker at the top-right corner, waiting for lists to load, selecting values, and reloading.

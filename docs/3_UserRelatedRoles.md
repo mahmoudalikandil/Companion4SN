@@ -1,4 +1,4 @@
-# 2. Feature Specification: User Roles & ACL Permission Analyzer
+# 3. Feature Specification: User Roles & ACL Permission Analyzer
 
 ## 1. Executive Summary
 Troubleshooting access control issues (ACLs) in ServiceNow is a common pain point for developers. Traditional debugging requires manually impersonating the user, navigating to the form, triggering errors, and inspecting security debug logs. 

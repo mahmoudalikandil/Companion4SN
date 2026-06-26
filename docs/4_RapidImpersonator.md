@@ -1,4 +1,4 @@
-# 3. Feature Specification: Rapid Impersonator
+# 4. Feature Specification: Rapid Impersonator
 
 ## 1. Executive Summary
 Testing roles and permissions in ServiceNow requires switching contexts between different users. The native impersonate function requires navigating through the concourse banner menus, typing in search bars, clicking select, and waiting for page reloads.

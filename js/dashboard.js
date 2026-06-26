@@ -103,10 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 clonerSourceName.value = window.activeInstanceData.catItemName || '';
             }
 
-            // Only switch to cloner panel if welcome panel is currently active
+            // Only switch to bulk panel if welcome panel is currently active
             if (document.getElementById('panel-welcome').classList.contains('active')) {
-                switchPanel('panel-cloner');
+                switchPanel('panel-bulk');
             }
+            loadBulkBuilderMetadata();
         } catch (error) {
             connStatus.textContent = "Connection Failed";
             connStatus.className = "status-indicator error";
@@ -359,14 +360,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- SCHEMA EXPORTER LOGIC ---
     if (btnDetectTable) {
-        btnDetectTable.addEventListener('click', () => {
-            if (window.activeInstanceData && window.activeInstanceData.table) {
-                schemaTableInput.value = window.activeInstanceData.table;
-                schemaStatus.style.color = "#2e7d32";
-                schemaStatus.textContent = "Table detected automatically.";
-            } else {
+        btnDetectTable.addEventListener('click', async () => {
+            try {
+                btnDetectTable.textContent = "...";
+                const activeData = await window.SNOW_Bridge.connectToInstance();
+                window.activeInstanceData = activeData;
+
+                if (activeData && activeData.table) {
+                    schemaTableInput.value = activeData.table;
+                    schemaStatus.style.color = "#2e7d32";
+                    schemaStatus.textContent = "Table detected automatically.";
+                } else {
+                    schemaStatus.style.color = "#c62828";
+                    schemaStatus.textContent = "Could not detect table on active tab.";
+                }
+            } catch (err) {
                 schemaStatus.style.color = "#c62828";
-                schemaStatus.textContent = "Could not detect table. Please type it manually.";
+                schemaStatus.textContent = "Auto-detect failed: " + err.message;
+            } finally {
+                btnDetectTable.textContent = "Auto-Detect";
             }
         });
     }
@@ -671,13 +683,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnDetectClonerSource) {
-        btnDetectClonerSource.addEventListener('click', () => {
-            if (window.activeInstanceData && window.activeInstanceData.catItemSysId) {
-                clonerSourceTable.value = window.activeInstanceData.catItemTable || '';
-                clonerSourceSysId.value = window.activeInstanceData.catItemSysId || '';
-                clonerSourceName.value = window.activeInstanceData.catItemName || '';
-            } else {
-                alert("Could not auto-detect a Catalog Item on the active tab.");
+        btnDetectClonerSource.addEventListener('click', async () => {
+            try {
+                btnDetectClonerSource.textContent = "...";
+                const activeData = await window.SNOW_Bridge.connectToInstance();
+                window.activeInstanceData = activeData;
+
+                if (activeData && activeData.catItemSysId) {
+                    clonerSourceTable.value = activeData.catItemTable || '';
+                    clonerSourceSysId.value = activeData.catItemSysId || '';
+                    clonerSourceName.value = activeData.catItemName || '';
+                } else {
+                    alert("Could not auto-detect a Catalog Item on the active tab.");
+                }
+            } catch (err) {
+                alert("Auto-detect failed: " + err.message);
+            } finally {
+                btnDetectClonerSource.textContent = "Auto-Detect";
             }
         });
     }
@@ -1036,6 +1058,487 @@ document.addEventListener('DOMContentLoaded', () => {
             btnAclCheckCustomTable.disabled = false;
             btnAclCheckCustomTable.textContent = "Add Table";
         });
+    }
+
+    // --- EXCEL-BASED CATALOG ITEM BULK BUILDER ---
+    let bulkMetadata = {
+        scopes: [],
+        categories: [],
+        variableSets: []
+    };
+
+    const chkBulkVariables = document.getElementById('chkBulkVariables');
+    const chkBulkVariableSets = document.getElementById('chkBulkVariableSets');
+    const chkBulkUiPolicies = document.getElementById('chkBulkUiPolicies');
+    const btnDownloadBulkTemplate = document.getElementById('btnDownloadBulkTemplate');
+    const bulkDropzone = document.getElementById('bulkDropzone');
+    const bulkFileInput = document.getElementById('bulkFileInput');
+    const btnRunBulkDryRun = document.getElementById('btnRunBulkDryRun');
+    const btnCommitBulk = document.getElementById('btnCommitBulk');
+    const bulkResultsBox = document.getElementById('bulkResultsBox');
+    const bulkOutput = document.getElementById('bulkOutput');
+    const bulkErrorArea = document.getElementById('bulkErrorArea');
+    const bulkErrorBody = document.getElementById('bulkErrorBody');
+    const bulkErrorCount = document.getElementById('bulkErrorCount');
+
+    let bulkPayload = null;
+    let validationErrors = [];
+
+    async function loadBulkBuilderMetadata() {
+        if (!window.activeInstanceData) return;
+        try {
+            console.log('[Bulk Builder] Fetching instance metadata for validations...');
+            const [scopes, categories, variableSets] = await Promise.all([
+                window.SNOW_API.fetchScopes(),
+                window.SNOW_API.fetchCategories(),
+                window.SNOW_API.fetchVariableSets()
+            ]);
+            bulkMetadata.scopes = scopes;
+            bulkMetadata.categories = categories;
+            bulkMetadata.variableSets = variableSets;
+            console.log('[Bulk Builder] Metadata successfully loaded.');
+        } catch (e) {
+            console.warn('[Bulk Builder] Error caching metadata: ', e);
+        }
+    }
+
+    if (btnDownloadBulkTemplate) {
+        btnDownloadBulkTemplate.addEventListener('click', () => {
+            try {
+                btnDownloadBulkTemplate.textContent = "Generating...";
+                btnDownloadBulkTemplate.disabled = true;
+
+                const wb = XLSX.utils.book_new();
+
+                // 1. Catalog Items Sheet
+                const itemsAOA = [
+                    ['Temp ID', 'Name', 'Short Description', 'Description', 'Category', 'Scope', 'Table Class'],
+                    [1, 'Standard Laptop Request', 'Request a new standard developer laptop', 'Standard corporate developer laptop specifications...', 'Hardware', 'Global', 'sc_cat_item']
+                ];
+                const wsItems = XLSX.utils.aoa_to_sheet(itemsAOA);
+                XLSX.utils.book_append_sheet(wb, wsItems, 'Catalog Items');
+
+                // 2. Variables Sheet
+                if (chkBulkVariables && chkBulkVariables.checked) {
+                    const varsAOA = [
+                        ['Item Temp ID', 'Name', 'Label', 'Type', 'Order', 'Mandatory', 'Reference Table', 'Choices'],
+                        [1, 'laptop_model', 'Select Laptop Model', 'Select Box', 100, 'Yes', '', 'MacBook Pro 16:macbook_pro, ThinkPad P1:thinkpad_p1'],
+                        [1, 'special_requirements', 'Special Requirements', 'Multi Line Text', 200, 'No', '', '']
+                    ];
+                    const wsVars = XLSX.utils.aoa_to_sheet(varsAOA);
+                    XLSX.utils.book_append_sheet(wb, wsVars, 'Variables');
+                }
+
+                // 3. Variable Sets Sheet
+                if (chkBulkVariableSets && chkBulkVariableSets.checked) {
+                    const setsAOA = [
+                        ['Item Temp ID', 'Variable Set Name'],
+                        [1, 'Standard Employee Fields']
+                    ];
+                    const wsSets = XLSX.utils.aoa_to_sheet(setsAOA);
+                    XLSX.utils.book_append_sheet(wb, wsSets, 'Variable Sets');
+                }
+
+                // 4. UI Policies Sheet
+                if (chkBulkUiPolicies && chkBulkUiPolicies.checked) {
+                    const polsAOA = [
+                        ['Item Temp ID', 'Short Description', 'Conditions', 'Variable Name', 'Mandatory', 'Read Only', 'Visible'],
+                        [1, 'Show Special Requirements on ThinkPad', 'laptop_model=thinkpad_p1', 'special_requirements', 'Yes', 'No', 'Yes']
+                    ];
+                    const wsPols = XLSX.utils.aoa_to_sheet(polsAOA);
+                    XLSX.utils.book_append_sheet(wb, wsPols, 'UI Policies');
+                }
+
+                // 5. Reference & Instructions Sheet
+                const refAOA = [
+                    ['Valid Scopes (Name/Key)', 'Valid Categories (Title)', 'Valid Variable Sets (Title/Name)', 'Supported Variable Types'],
+                ];
+                
+                const varTypes = ['Single Line Text', 'Multi Line Text', 'Wide Single Line Text', 'Select Box', 'Multiple Choice', 'Reference', 'Checkbox', 'Yes/No', 'Date', 'Date/Time', 'Integer'];
+                const maxLen = Math.max(
+                    bulkMetadata.scopes.length,
+                    bulkMetadata.categories.length,
+                    bulkMetadata.variableSets.length,
+                    varTypes.length
+                );
+
+                for (let i = 0; i < maxLen; i++) {
+                    refAOA.push([
+                        (bulkMetadata.scopes[i] ? `${bulkMetadata.scopes[i].name} (${bulkMetadata.scopes[i].scope})` : ''),
+                        (bulkMetadata.categories[i] ? bulkMetadata.categories[i].title : ''),
+                        (bulkMetadata.variableSets[i] ? bulkMetadata.variableSets[i].title : ''),
+                        (varTypes[i] || '')
+                    ]);
+                }
+
+                const wsRef = XLSX.utils.aoa_to_sheet(refAOA);
+                XLSX.utils.book_append_sheet(wb, wsRef, 'Metadata Reference');
+
+                // Write workbook
+                XLSX.writeFile(wb, 'ServiceNow_Bulk_Catalog_Items_Template.xlsx');
+            } catch (err) {
+                alert("Failed to download template: " + err.message);
+            } finally {
+                btnDownloadBulkTemplate.textContent = "Download Excel Template";
+                btnDownloadBulkTemplate.disabled = false;
+            }
+        });
+    }
+
+    // Drag-Drop Zone Handlers
+    if (bulkDropzone) {
+        bulkDropzone.addEventListener('click', () => {
+            if (bulkFileInput) bulkFileInput.click();
+        });
+
+        bulkDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            bulkDropzone.classList.add('dragover');
+        });
+
+        bulkDropzone.addEventListener('dragleave', () => {
+            bulkDropzone.classList.remove('dragover');
+        });
+
+        bulkDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            bulkDropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                processExcelFile(e.dataTransfer.files[0]);
+            }
+        });
+    }
+
+    if (bulkFileInput) {
+        bulkFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                processExcelFile(e.target.files[0]);
+            }
+        });
+    }
+
+    function processExcelFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        document.getElementById('bulkDropzoneText').textContent = `Reading ${file.name}...`;
+
+        reader.onload = function (e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                const payload = {
+                    items: [],
+                    variables: [],
+                    variable_sets: [],
+                    ui_policies: []
+                };
+
+                if (workbook.Sheets['Catalog Items']) {
+                    payload.items = normalizeParsedData(XLSX.utils.sheet_to_json(workbook.Sheets['Catalog Items']));
+                }
+                if (workbook.Sheets['Variables']) {
+                    payload.variables = normalizeParsedData(XLSX.utils.sheet_to_json(workbook.Sheets['Variables']));
+                }
+                if (workbook.Sheets['Variable Sets']) {
+                    payload.variable_sets = normalizeParsedData(XLSX.utils.sheet_to_json(workbook.Sheets['Variable Sets']));
+                }
+                if (workbook.Sheets['UI Policies']) {
+                    payload.ui_policies = normalizeParsedData(XLSX.utils.sheet_to_json(workbook.Sheets['UI Policies']));
+                }
+
+                document.getElementById('bulkDropzoneText').textContent = `Loaded: ${file.name} (Items: ${payload.items.length})`;
+                validateUploadedData(payload);
+            } catch (err) {
+                document.getElementById('bulkDropzoneText').textContent = "Drag & drop completed template Excel sheet, or click to upload";
+                alert("Failed to parse Excel file. Ensure it is a valid .xlsx template file. Details: " + err.message);
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    function normalizeParsedData(sheetData) {
+        if (!sheetData) return [];
+        return sheetData.map(row => {
+            const normalized = {};
+            for (let key in row) {
+                const trimmedKey = String(key).trim();
+                let val = row[key];
+                if (typeof val === 'string') val = val.trim();
+                normalized[trimmedKey] = val;
+            }
+            return normalized;
+        });
+    }
+
+    function validateUploadedData(payload) {
+        bulkPayload = payload;
+        validationErrors = [];
+
+        const items = payload.items || [];
+        const variables = payload.variables || [];
+        const varSets = payload.variable_sets || [];
+        const uiPolicies = payload.ui_policies || [];
+
+        // Check if template contains at least one item
+        if (items.length === 0) {
+            validationErrors.push({ sheet: 'Catalog Items', index: -1, field: 'Catalog Items Sheet', value: '', error: 'Sheet is empty or missing.' });
+        }
+
+        const itemTempIds = new Set();
+        items.forEach((item, index) => {
+            const tempIdStr = String(item['Temp ID'] || '').trim();
+            if (!tempIdStr) {
+                validationErrors.push({ sheet: 'Catalog Items', index, field: 'Temp ID', value: '', error: 'Temp ID is mandatory.' });
+            } else {
+                itemTempIds.add(tempIdStr);
+            }
+
+            if (!item['Name']) {
+                validationErrors.push({ sheet: 'Catalog Items', index, field: 'Name', value: '', error: 'Catalog Item Name is mandatory.' });
+            }
+        });
+
+        // Validate Variables
+        variables.forEach((v, index) => {
+            const itemTempId = String(v['Item Temp ID'] || '').trim();
+            if (!itemTempId) {
+                validationErrors.push({ sheet: 'Variables', index, field: 'Item Temp ID', value: '', error: 'Item Temp ID is mandatory.' });
+            } else if (!itemTempIds.has(itemTempId)) {
+                validationErrors.push({ sheet: 'Variables', index, field: 'Item Temp ID', value: itemTempId, error: `Item Temp ID "${itemTempId}" does not exist in Catalog Items sheet.` });
+            }
+
+            if (!v['Name']) {
+                validationErrors.push({ sheet: 'Variables', index, field: 'Name', value: '', error: 'Variable Name is mandatory.' });
+            } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(v['Name'])) {
+                validationErrors.push({ sheet: 'Variables', index, field: 'Name', value: v['Name'], error: 'Name must be alphanumeric starting with letter/underscore.' });
+            }
+
+            const type = (v['Type'] || '').trim();
+            if (!type) {
+                validationErrors.push({ sheet: 'Variables', index, field: 'Type', value: '', error: 'Type is mandatory.' });
+            } else {
+                const validTypes = ['yes/no', 'yes_no', 'single line text', 'single_line_text', 'wide single line text', 'wide_single_line_text', 'multi line text', 'multi_line_text', 'select box', 'select_box', 'multiple choice', 'multiple_choice', 'reference', 'checkbox', 'date', 'date/time', 'date_time', 'integer', '1', '2', '3', '5', '6', '7', '8', '9', '10', '15', '16'];
+                if (!validTypes.includes(type.toLowerCase())) {
+                    validationErrors.push({ sheet: 'Variables', index, field: 'Type', value: type, error: 'Invalid variable type.' });
+                }
+            }
+        });
+
+        // Validate Variable Sets
+        varSets.forEach((vs, index) => {
+            const itemTempId = String(vs['Item Temp ID'] || '').trim();
+            if (!itemTempId) {
+                validationErrors.push({ sheet: 'Variable Sets', index, field: 'Item Temp ID', value: '', error: 'Item Temp ID is mandatory.' });
+            } else if (!itemTempIds.has(itemTempId)) {
+                validationErrors.push({ sheet: 'Variable Sets', index, field: 'Item Temp ID', value: itemTempId, error: `Item Temp ID "${itemTempId}" does not exist in Catalog Items sheet.` });
+            }
+
+            if (!vs['Variable Set Name']) {
+                validationErrors.push({ sheet: 'Variable Sets', index, field: 'Variable Set Name', value: '', error: 'Variable Set Name/Title is mandatory.' });
+            }
+        });
+
+        // Validate UI Policies
+        uiPolicies.forEach((pol, index) => {
+            const itemTempId = String(pol['Item Temp ID'] || '').trim();
+            if (!itemTempId) {
+                validationErrors.push({ sheet: 'UI Policies', index, field: 'Item Temp ID', value: '', error: 'Item Temp ID is mandatory.' });
+            } else if (!itemTempIds.has(itemTempId)) {
+                validationErrors.push({ sheet: 'UI Policies', index, field: 'Item Temp ID', value: itemTempId, error: `Item Temp ID "${itemTempId}" does not exist in Catalog Items sheet.` });
+            }
+
+            if (!pol['Short Description']) {
+                validationErrors.push({ sheet: 'UI Policies', index, field: 'Short Description', value: '', error: 'Short Description is mandatory.' });
+            }
+        });
+
+        renderValidationErrors();
+    }
+
+    function renderValidationErrors() {
+        if (!bulkErrorArea || !bulkErrorBody || !bulkErrorCount) return;
+
+        if (validationErrors.length === 0) {
+            bulkErrorArea.classList.add('hidden');
+            bulkErrorBody.innerHTML = '';
+            bulkErrorCount.textContent = '0';
+            
+            if (bulkPayload && bulkPayload.items && bulkPayload.items.length > 0) {
+                btnRunBulkDryRun.disabled = false;
+            } else {
+                btnRunBulkDryRun.disabled = true;
+            }
+            return;
+        }
+
+        btnRunBulkDryRun.disabled = true;
+        btnCommitBulk.disabled = true;
+        bulkErrorCount.textContent = validationErrors.length;
+        bulkErrorBody.innerHTML = '';
+
+        validationErrors.forEach((err) => {
+            const tr = document.createElement('tr');
+            
+            const tdSheet = document.createElement('td');
+            tdSheet.className = 'bulk-table-cell';
+            tdSheet.textContent = err.sheet;
+            tr.appendChild(tdSheet);
+
+            const tdRow = document.createElement('td');
+            tdRow.className = 'bulk-table-cell';
+            tdRow.textContent = err.index === -1 ? 'N/A' : err.index + 2;
+            tr.appendChild(tdRow);
+
+            const tdField = document.createElement('td');
+            tdField.className = 'bulk-table-cell';
+            tdField.textContent = err.field;
+            tr.appendChild(tdField);
+
+            const tdError = document.createElement('td');
+            tdError.className = 'bulk-table-cell';
+            tdError.textContent = err.error;
+            tr.appendChild(tdError);
+
+            const tdCorrect = document.createElement('td');
+            tdCorrect.className = 'bulk-table-cell';
+            
+            if (err.index !== -1) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'inline-edit-input';
+                input.value = err.value || '';
+                input.placeholder = 'Fix cell...';
+
+                input.addEventListener('change', (e) => {
+                    const newVal = e.target.value;
+                    let targetArray = [];
+                    if (err.sheet === 'Catalog Items') targetArray = bulkPayload.items;
+                    else if (err.sheet === 'Variables') targetArray = bulkPayload.variables;
+                    else if (err.sheet === 'Variable Sets') targetArray = bulkPayload.variable_sets;
+                    else if (err.sheet === 'UI Policies') targetArray = bulkPayload.ui_policies;
+
+                    if (targetArray[err.index]) {
+                        targetArray[err.index][err.field] = newVal;
+                        validateUploadedData(bulkPayload);
+                    }
+                });
+                tdCorrect.appendChild(input);
+            } else {
+                tdCorrect.textContent = 'N/A';
+            }
+            
+            tr.appendChild(tdCorrect);
+            bulkErrorBody.appendChild(tr);
+        });
+
+        bulkErrorArea.classList.remove('hidden');
+    }
+
+    async function executeBulkBuild(isDryRun) {
+        if (!bulkPayload) return;
+
+        const targetBtn = isDryRun ? btnRunBulkDryRun : btnCommitBulk;
+        const initialText = targetBtn.textContent;
+        targetBtn.textContent = isDryRun ? "Validating..." : "Committing...";
+        targetBtn.disabled = true;
+        
+        btnRunBulkDryRun.disabled = true;
+        btnCommitBulk.disabled = true;
+        bulkResultsBox.classList.remove('hidden');
+        bulkOutput.textContent = isDryRun ? "[Dry Run] Submitting atomic transaction block to ServiceNow server...\n" : "[Commit] Submitting final transaction block to ServiceNow server...\n";
+
+        try {
+            // Map payloads to server expected fields
+            const items = bulkPayload.items.map(item => ({
+                temp_id: item['Temp ID'],
+                name: item['Name'],
+                short_description: item['Short Description'] || '',
+                description: item['Description'] || '',
+                category: item['Category'] || '',
+                scope: item['Scope'] || 'global',
+                table: item['Table Class'] || 'sc_cat_item'
+            }));
+
+            const variables = bulkPayload.variables.map(v => ({
+                item_temp_id: v['Item Temp ID'],
+                name: v['Name'],
+                label: v['Label'] || '',
+                type: v['Type'] || 'Single Line Text',
+                order: v['Order'] || 100,
+                mandatory: v['Mandatory'] || 'No',
+                reference: v['Reference Table'] || '',
+                choices: v['Choices'] || ''
+            }));
+
+            const variableSets = bulkPayload.variable_sets.map(vs => ({
+                item_temp_id: vs['Item Temp ID'],
+                variable_set: vs['Variable Set Name']
+            }));
+
+            const uiPolicies = bulkPayload.ui_policies.map(pol => ({
+                item_temp_id: pol['Item Temp ID'],
+                short_description: pol['Short Description'],
+                conditions: pol['Conditions'] || '',
+                variable_name: pol['Variable Name'] || '',
+                mandatory: pol['Mandatory'] || '',
+                read_only: pol['Read Only'] || '',
+                visible: pol['Visible'] || ''
+            }));
+
+            const serverPayload = {
+                items,
+                variables,
+                variable_sets: variableSets,
+                ui_policies: uiPolicies
+            };
+
+            const output = await window.SNOW_API.bulkCreateCatalogItems(serverPayload, isDryRun);
+            
+            // Format log response, extracting success links
+            bulkOutput.textContent += output;
+
+            if (output.includes(">>>DRY_RUN_PASSED<<<")) {
+                bulkOutput.textContent += "\n[DRY RUN SUCCESS] The transaction was validated successfully and all database changes were aborted. You can now safely Commit.";
+                btnCommitBulk.disabled = false;
+                btnRunBulkDryRun.disabled = false;
+            } else if (output.includes(">>>BULK_SUCCESS<<<")) {
+                bulkOutput.textContent += "\n[BULK BUILD SUCCESS] All Catalog Items and related lists successfully committed to database!\n";
+                
+                // Parse created catalog item sys_ids from the output logs
+                const sysIdMatches = [...output.matchAll(/Created Catalog Item: (.*?) \(sys_id: ([a-f0-9]{32})\)/g)];
+                if (sysIdMatches.length > 0) {
+                    bulkOutput.textContent += "\n--- Created Catalog Items Links ---\n";
+                    sysIdMatches.forEach(match => {
+                        const name = match[1];
+                        const sysId = match[2];
+                        const url = `${window.activeInstanceData.url}/nav_to.do?uri=sc_cat_item.do?sys_id=${sysId}`;
+                        bulkOutput.textContent += `${name}: ${url}\n`;
+                    });
+                }
+                
+                btnCommitBulk.disabled = true;
+                btnRunBulkDryRun.disabled = true;
+            } else {
+                bulkOutput.textContent += "\n[TRANSACTION FAILED] Server transaction returned errors or aborted. Database rolled back.";
+                btnRunBulkDryRun.disabled = false;
+            }
+
+        } catch (err) {
+            bulkOutput.textContent += `\n[ERROR] Server communication failure: ${err.message}`;
+            btnRunBulkDryRun.disabled = false;
+        } finally {
+            targetBtn.textContent = initialText;
+        }
+    }
+
+    if (btnRunBulkDryRun) {
+        btnRunBulkDryRun.addEventListener('click', () => executeBulkBuild(true));
+    }
+
+    if (btnCommitBulk) {
+        btnCommitBulk.addEventListener('click', () => executeBulkBuild(false));
     }
 
     // Auto-Connect on Open

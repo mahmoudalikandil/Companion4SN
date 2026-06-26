@@ -1,4 +1,4 @@
-# 1. Feature Specification: Catalog Item Cloner
+# 2. Feature Specification: Catalog Item Cloner
 
 ## 1. Executive Summary
 Duplicating complex catalog items in ServiceNow is historically time-consuming. Performing an "Insert and Stay" on a `sc_cat_item` record only duplicates the core record, omitting all critical related lists such as variables, UI policies, and client scripts. Manually recreating or export-importing these records is error-prone and often leads to broken variables references and broken script execution.

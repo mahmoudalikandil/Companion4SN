@@ -1,4 +1,4 @@
-# 9. Feature Specification: XML Payload Studio
+# 10. Feature Specification: XML Payload Studio
 
 ## 1. Executive Summary
 ServiceNow records can be exported and imported as XML files. However, exported XMLs are raw, unindented, and contain complex system metadata headers (like creation dates, update authors, or modification counts). Preparing these payloads for import into clean environments or committing them to git repositories requires tedious manual formatting and stripping of metadata.

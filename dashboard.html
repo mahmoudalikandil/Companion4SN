@@ -29,7 +29,8 @@
             <div class="tool-nav hidden" id="toolNav">
                 <h3>Developer Tools</h3>
                 <ul class="nav-list">
-                    <li data-target="panel-cloner" class="active">Catalog Item Cloner</li>
+                    <li data-target="panel-bulk" class="active">Bulk Item Builder</li>
+                    <li data-target="panel-cloner">Catalog Item Cloner</li>
                     <li data-target="panel-impersonate">Rapid Impersonator</li>
                     <li data-target="panel-bgscript">Background Script</li>
                     <li data-target="panel-updateset">Update Sets</li>
@@ -48,6 +49,63 @@
                 <div class="placeholder-message" id="mainDisplay">
                     <h3>Live Bridge Status</h3>
                     <p>Click "Initialize Bridge" to securely connect to your active ServiceNow tab.</p>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-bulk">
+                <div class="panel-header">
+                    <h2>Bulk Item Builder</h2>
+                    <span class="badge">Excel Import</span>
+                </div>
+
+                <div class="input-group full-width">
+                    <label style="font-weight: 600; font-size: 12px; color: #425051;">Include Optional Related Lists in Template:</label>
+                    <div class="checkbox-grid mt-5" style="width: 100%;">
+                        <label><input type="checkbox" id="chkBulkVariables" checked> Variables</label>
+                        <label><input type="checkbox" id="chkBulkVariableSets" checked> Variable Sets</label>
+                        <label><input type="checkbox" id="chkBulkUiPolicies" checked> UI Policies & Actions</label>
+                    </div>
+                </div>
+
+                <button id="btnDownloadBulkTemplate" class="secondary-btn mt-10" style="width: 100%; height: 32px; font-size: 12px; line-height: 14px;">Download Excel Template</button>
+
+                <div class="dropzone mt-15" id="bulkDropzone">
+                    <div class="dropzone-inner">
+                        <span class="dropzone-icon">📁</span>
+                        <p class="dropzone-text" id="bulkDropzoneText">Drag & drop completed template Excel sheet, or click to upload</p>
+                        <input type="file" id="bulkFileInput" accept=".xlsx" class="hidden">
+                    </div>
+                </div>
+
+                <div id="bulkErrorArea" class="hidden mt-15" style="display: flex; flex-direction: column; max-height: 160px; min-height: 0; overflow: hidden; border: 1px solid #ffebee; border-radius: 4px; background-color: #fffbfa;">
+                    <div style="background-color: #ffebee; color: #c62828; font-weight: bold; font-size: 11px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                        <span>Validation Errors Detected</span>
+                        <span id="bulkErrorCount" class="crud-badge deny">0</span>
+                    </div>
+                    <div style="overflow-y: auto; flex: 1; min-height: 0;">
+                        <table id="bulkErrorTable" style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+                            <thead style="background-color: #fcebee; color: #5d4037; border-bottom: 1px solid #ffebee; position: sticky; top: 0; z-index: 5;">
+                                <tr>
+                                    <th style="padding: 4px 8px;">Sheet</th>
+                                    <th style="padding: 4px 8px; width: 40px;">Row</th>
+                                    <th style="padding: 4px 8px; width: 85px;">Column</th>
+                                    <th style="padding: 4px 8px;">Error Details</th>
+                                    <th style="padding: 4px 8px; width: 120px;">Correction Grid</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulkErrorBody" style="color: #5d4037;"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="results-section hidden" id="bulkResultsBox" style="margin-top: 15px;">
+                    <h3>Execution Console Output</h3>
+                    <pre id="bulkOutput" class="console-output"></pre>
+                </div>
+
+                <div class="mt-15" style="display: flex; gap: 10px; flex-shrink: 0;">
+                    <button id="btnRunBulkDryRun" class="primary-btn" style="flex: 1;" disabled>Run Dry Run</button>
+                    <button id="btnCommitBulk" class="primary-btn success" style="flex: 1; background-color: #2e7d32; border-color: #2e7d32;" disabled>Commit to ServiceNow</button>
                 </div>
             </div>
 
@@ -300,6 +358,7 @@ while(gr.next()) {
         </section>
     </main>
 
+    <script src="js/libs/xlsx.mini.min.js"></script>
     <script src="js/bridge.js"></script>
     <script src="js/api.js"></script>
     <script src="js/dashboard.js"></script>

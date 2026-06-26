@@ -1,4 +1,4 @@
-# 10. Feature Specification: Cancel Running Transactions
+# 11. Feature Specification: Cancel Running Transactions
 
 ## 1. Executive Summary
 Long-running transactions, complex background scripts, or heavy database queries in ServiceNow can lock up session threads, making the active user interface freeze and degrade instance performance. Stopping these running scripts usually requires navigating to `v_transaction.do` or waiting for the transaction timeout to fire.

@@ -1,4 +1,4 @@
-# 11. Feature Specification: Instance Health (Stats.do)
+# 12. Feature Specification: Instance Health (Stats.do)
 
 ## 1. Executive Summary
 Monitoring instance performance, memory footprints, active node statistics, and release versions in ServiceNow is vital for deployment maintenance. Extracting this data requires navigating to `/stats.do` and reading through unformatted, complex system statistics.

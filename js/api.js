@@ -68,6 +68,18 @@ const SNOW_API = {
         return [{ sys_id: 'global', name: 'Global' }, ...data.result];
     },
 
+    fetchCategories: async function () {
+        const endpoint = `/api/now/table/sc_category?sysparm_query=active=true&sysparm_fields=sys_id,title&sysparm_limit=1000`;
+        const data = await this._fetch(endpoint);
+        return data.result;
+    },
+
+    fetchVariableSets: async function () {
+        const endpoint = `/api/now/table/item_option_new_set?sysparm_query=active=true&sysparm_fields=sys_id,title,name&sysparm_limit=1000`;
+        const data = await this._fetch(endpoint);
+        return data.result;
+    },
+
     fetchUpdateSets: async function (scopeId, searchTerm = "", limit = 20) {
         let query = `state=in progress`;
         if (scopeId && scopeId !== 'global') {
@@ -733,6 +745,349 @@ const SNOW_API = {
             }
         }
         return aclDetails;
+    }
+})();`;
+        return await this.runBackgroundScript(script, 'global');
+    },
+
+    bulkCreateCatalogItems: async function (payload, isDryRun) {
+        const payloadStr = JSON.stringify(payload);
+        const script = `(function() {
+    var payload = ${payloadStr};
+    var isDryRun = ${isDryRun ? 'true' : 'false'};
+
+    gs.print('>>>START_BULK_BUILD<<<');
+    
+    var transaction = null;
+    try {
+        transaction = com.glide.sys.Transaction.get();
+    } catch(e) {
+        // Fallback for environments where com.glide.sys.Transaction is not accessible
+    }
+
+    var itemMap = {}; // Maps temp_id -> sys_id of created catalog item
+    var variableMap = {}; // Maps temp_id + '_' + variable_name -> sys_id of created variable
+    var errorsCount = 0;
+
+    try {
+        // 1. Process Catalog Items
+        var items = payload.items || [];
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var tempId = item.temp_id;
+            var name = item.name;
+            if (!name) {
+                throw new Error('Row ' + (i + 1) + ' in Catalog Items: Name is mandatory.');
+            }
+
+            var table = item.table || 'sc_cat_item';
+            
+            // Resolve Scope
+            var scopeId = 'global';
+            if (item.scope && item.scope !== 'global' && item.scope !== 'Global') {
+                var scopeGr = new GlideRecord('sys_scope');
+                scopeGr.addQuery('scope', item.scope).addOrCondition('name', item.scope).addOrCondition('sys_id', item.scope);
+                scopeGr.query();
+                if (scopeGr.next()) {
+                    scopeId = scopeGr.getUniqueValue();
+                } else {
+                    gs.print('[WARNING] Scope "' + item.scope + '" not found. Defaulting to Global.');
+                }
+            }
+
+            // Resolve Category
+            var categoryId = '';
+            if (item.category) {
+                var catGr = new GlideRecord('sc_category');
+                catGr.addQuery('title', item.category).addOrCondition('sys_id', item.category);
+                catGr.query();
+                if (catGr.next()) {
+                    categoryId = catGr.getUniqueValue();
+                } else {
+                    gs.print('[WARNING] Category "' + item.category + '" not found. It will be left empty.');
+                }
+            }
+
+            var itemGr = new GlideRecord(table);
+            itemGr.initialize();
+            itemGr.setValue('name', name);
+            itemGr.setValue('short_description', item.short_description || '');
+            itemGr.setValue('description', item.description || '');
+            itemGr.setValue('sys_scope', scopeId);
+            if (categoryId) {
+                itemGr.setValue('category', categoryId);
+            }
+            
+            var itemSysId = itemGr.insert();
+            if (!itemSysId) {
+                throw new Error('Failed to insert Catalog Item: ' + name);
+            }
+
+            itemMap[tempId] = itemSysId;
+            gs.print('[SUCCESS] Created Catalog Item: ' + name + ' (sys_id: ' + itemSysId + ')');
+        }
+
+        // 2. Process Variables
+        var variables = payload.variables || [];
+        var typeMapping = {
+            'yes/no': '1', 'yes_no': '1', '1': '1',
+            'single line text': '6', 'single_line_text': '6', '6': '6',
+            'wide single line text': '2', 'wide_single_line_text': '2', '2': '2',
+            'multi line text': '15', 'multi_line_text': '15', '15': '15',
+            'select box': '5', 'select_box': '5', '5': '5',
+            'multiple choice': '3', 'multiple_choice': '3', '3': '3',
+            'reference': '8', '8': '8',
+            'checkbox': '7', '7': '7',
+            'date': '9', '9': '9',
+            'date/time': '10', 'date_time': '10', '10': '10',
+            'integer': '16', '16': '16'
+        };
+
+        for (var j = 0; j < variables.length; j++) {
+            var v = variables[j];
+            var itemTempId = v.item_temp_id;
+            var varName = v.name;
+            var varLabel = v.label || varName;
+
+            if (!itemTempId || !itemMap[itemTempId]) {
+                throw new Error('Variable "' + varName + '" refers to an invalid or missing Catalog Item Temp ID: ' + itemTempId);
+            }
+            if (!varName) {
+                throw new Error('Row ' + (j + 1) + ' in Variables: Name is mandatory.');
+            }
+
+            var typeStr = (v.type || '').toLowerCase().trim();
+            var typeVal = typeMapping[typeStr] || '6';
+
+            var varGr = new GlideRecord('item_option_new');
+            varGr.initialize();
+            varGr.setValue('cat_item', itemMap[itemTempId]);
+            varGr.setValue('name', varName);
+            varGr.setValue('label', varLabel);
+            varGr.setValue('type', typeVal);
+            varGr.setValue('order', v.order || '100');
+            varGr.setValue('mandatory', (v.mandatory === 'true' || v.mandatory === true || v.mandatory === 1 || v.mandatory === '1' || (v.mandatory + '').toLowerCase() === 'yes') ? 'true' : 'false');
+            
+            if (typeVal === '8' && v.reference) {
+                varGr.setValue('reference', v.reference);
+            }
+
+            var varSysId = varGr.insert();
+            if (!varSysId) {
+                throw new Error('Failed to insert Variable: ' + varName + ' for item ' + itemTempId);
+            }
+
+            variableMap[itemTempId + '_' + varName] = varSysId;
+            gs.print('[SUCCESS] Created Variable: ' + varName + ' (sys_id: ' + varSysId + ')');
+
+            if ((typeVal === '5' || typeVal === '3') && v.choices) {
+                var choiceItems = v.choices.split(',');
+                for (var c = 0; c < choiceItems.length; c++) {
+                    var parts = choiceItems[c].split(':');
+                    var cLabel = parts[0] ? parts[0].trim() : '';
+                    var cValue = parts[1] ? parts[1].trim() : cLabel;
+
+                    if (!cLabel) continue;
+
+                    var choiceGr = new GlideRecord('question_choice');
+                    choiceGr.initialize();
+                    choiceGr.setValue('question', varSysId);
+                    choiceGr.setValue('text', cLabel);
+                    choiceGr.setValue('value', cValue);
+                    choiceGr.setValue('order', (c + 1) * 100);
+                    var choiceSysId = choiceGr.insert();
+                    if (!choiceSysId) {
+                        gs.print('[WARNING] Failed to insert choice: ' + cLabel + ' for variable ' + varName);
+                    }
+                }
+            }
+        }
+
+        // 3. Process Variable Sets
+        var varSets = payload.variable_sets || [];
+        for (var k = 0; k < varSets.length; k++) {
+            var vs = varSets[k];
+            var itemTempId = vs.item_temp_id;
+            var setName = vs.variable_set;
+
+            if (!itemTempId || !itemMap[itemTempId]) {
+                throw new Error('Variable Set assignment refers to an invalid or missing Catalog Item Temp ID: ' + itemTempId);
+            }
+            if (!setName) continue;
+
+            var vsGr = new GlideRecord('item_option_new_set');
+            vsGr.addQuery('title', setName).addOrCondition('name', setName).addOrCondition('sys_id', setName);
+            vsGr.query();
+            if (vsGr.next()) {
+                var setLinkId = vsGr.getUniqueValue();
+                var linkGr = new GlideRecord('io_set_item');
+                linkGr.initialize();
+                linkGr.setValue('sc_cat_item', itemMap[itemTempId]);
+                linkGr.setValue('variable_set', setLinkId);
+                var linkSysId = linkGr.insert();
+                if (!linkSysId) {
+                    throw new Error('Failed to link Variable Set "' + setName + '" to Catalog Item Temp ID: ' + itemTempId);
+                }
+                gs.print('[SUCCESS] Linked Variable Set: ' + setName + ' (link_id: ' + linkSysId + ')');
+            } else {
+                throw new Error('Variable Set not found: ' + setName);
+            }
+        }
+
+        // 4. Process UI Policies
+        var uiPolicies = payload.ui_policies || [];
+        var policyGroups = {};
+        for (var p = 0; p < uiPolicies.length; p++) {
+            var pol = uiPolicies[p];
+            var itemTempId = pol.item_temp_id;
+            var desc = pol.short_description || 'UI Policy';
+            var key = itemTempId + '_' + desc;
+
+            if (!itemTempId || !itemMap[itemTempId]) {
+                throw new Error('UI Policy refers to an invalid or missing Catalog Item Temp ID: ' + itemTempId);
+            }
+
+            if (!policyGroups[key]) {
+                policyGroups[key] = {
+                    item_temp_id: itemTempId,
+                    short_description: desc,
+                    conditions: pol.conditions || '',
+                    actions: []
+                };
+            }
+
+            if (pol.variable_name) {
+                policyGroups[key].actions.push({
+                    variable_name: pol.variable_name,
+                    mandatory: pol.mandatory,
+                    read_only: pol.read_only,
+                    visible: pol.visible
+                });
+            }
+        }
+
+        for (var key in policyGroups) {
+            var group = policyGroups[key];
+            var catItemSysId = itemMap[group.item_temp_id];
+
+            var polGr = new GlideRecord('catalog_ui_policy');
+            polGr.initialize();
+            polGr.setValue('catalog_item', catItemSysId);
+            polGr.setValue('short_description', group.short_description);
+            polGr.setValue('active', 'true');
+            polGr.setValue('applies_catalog', 'true');
+            polGr.setValue('applies_req_item', 'true');
+            polGr.setValue('applies_sc_task', 'true');
+
+            var rawCond = group.conditions;
+            var finalCond = '';
+            if (rawCond) {
+                var condParts = rawCond.split('^');
+                var parsedParts = [];
+                for (var cp = 0; cp < condParts.length; cp++) {
+                    var part = condParts[cp];
+                    if (part === 'EQ' || !part) {
+                        parsedParts.push(part);
+                        continue;
+                    }
+                    
+                    var opMatch = part.match(/([^!=><~]+)(=|!=|LIKE|NOT LIKE|IN|NOT IN|>|<|>=|<=)(.*)/);
+                    if (opMatch) {
+                        var varName = opMatch[1].trim();
+                        var op = opMatch[2];
+                        var val = opMatch[3];
+                        
+                        var mappedVarId = variableMap[group.item_temp_id + '_' + varName];
+                        if (mappedVarId) {
+                            parsedParts.push('IO:' + mappedVarId + op + val);
+                        } else {
+                            var sysVarGr = new GlideRecord('item_option_new');
+                            sysVarGr.addQuery('cat_item', catItemSysId);
+                            sysVarGr.addQuery('name', varName);
+                            sysVarGr.query();
+                            if (sysVarGr.next()) {
+                                parsedParts.push('IO:' + sysVarGr.getUniqueValue() + op + val);
+                            } else {
+                                gs.print('[WARNING] Condition Variable "' + varName + '" not found. Retaining raw.');
+                                parsedParts.push(part);
+                            }
+                        }
+                    } else {
+                        parsedParts.push(part);
+                    }
+                }
+                finalCond = parsedParts.join('^');
+            }
+            polGr.setValue('catalog_conditions', finalCond);
+
+            var policySysId = polGr.insert();
+            if (!policySysId) {
+                throw new Error('Failed to insert Catalog UI Policy: ' + group.short_description);
+            }
+            gs.print('[SUCCESS] Created UI Policy: ' + group.short_description + ' (sys_id: ' + policySysId + ')');
+
+            for (var a = 0; a < group.actions.length; a++) {
+                var act = group.actions[a];
+                var targetVarName = act.variable_name;
+                
+                var targetVarSysId = variableMap[group.item_temp_id + '_' + targetVarName];
+                if (!targetVarSysId) {
+                    var sysVarGr = new GlideRecord('item_option_new');
+                    sysVarGr.addQuery('cat_item', catItemSysId);
+                    sysVarGr.addQuery('name', targetVarName);
+                    sysVarGr.query();
+                    if (sysVarGr.next()) {
+                        targetVarSysId = sysVarGr.getUniqueValue();
+                    }
+                }
+
+                if (!targetVarSysId) {
+                    gs.print('[WARNING] Action target variable "' + targetVarName + '" not found. Action skipped.');
+                    continue;
+                }
+
+                var actGr = new GlideRecord('catalog_ui_policy_action');
+                actGr.initialize();
+                actGr.setValue('ui_policy', policySysId);
+                actGr.setValue('catalog_variable', 'IO:' + targetVarSysId);
+                
+                var mandatoryVal = (act.mandatory + '').toLowerCase().trim();
+                actGr.setValue('mandatory', (mandatoryVal === 'true' || mandatoryVal === 'yes') ? 'true' : ((mandatoryVal === 'false' || mandatoryVal === 'no') ? 'false' : 'leave'));
+                
+                var readOnlyVal = (act.read_only + '').toLowerCase().trim();
+                actGr.setValue('read_only', (readOnlyVal === 'true' || readOnlyVal === 'yes') ? 'true' : ((readOnlyVal === 'false' || readOnlyVal === 'no') ? 'false' : 'leave'));
+                
+                var visibleVal = (act.visible + '').toLowerCase().trim();
+                actGr.setValue('visible', (visibleVal === 'true' || visibleVal === 'yes') ? 'true' : ((visibleVal === 'false' || visibleVal === 'no') ? 'false' : 'leave'));
+
+                var actSysId = actGr.insert();
+                if (!actSysId) {
+                    gs.print('[WARNING] Failed to insert UI Policy Action for variable ' + targetVarName);
+                } else {
+                    gs.print('[SUCCESS] Created UI Policy Action for variable: ' + targetVarName);
+                }
+            }
+        }
+
+        if (isDryRun) {
+            gs.print('>>>DRY_RUN_PASSED<<<');
+            if (transaction) {
+                gs.print('[INFO] Reverting all database inserts (Dry Run Mode).');
+                transaction.rollback();
+            } else {
+                throw new Error('DRY_RUN_ROLLBACK');
+            }
+        } else {
+            gs.print('>>>BULK_SUCCESS<<<');
+        }
+
+    } catch (e) {
+        gs.print('[ERROR] Script Execution Terminated: ' + e.message);
+        if (transaction) {
+            gs.print('[INFO] Rolling back transaction.');
+            transaction.rollback();
+        }
+        gs.print('>>>BULK_ERROR<<<');
     }
 })();`;
         return await this.runBackgroundScript(script, 'global');

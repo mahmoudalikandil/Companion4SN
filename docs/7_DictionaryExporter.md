@@ -1,4 +1,4 @@
-# 6. Feature Specification: Dictionary Exporter
+# 7. Feature Specification: Dictionary Exporter
 
 ## 1. Executive Summary
 Understanding table structures, fields, references, and maximum lengths is vital for building integrations, client scripts, or database queries. Navigating to the ServiceNow Dictionary (`sys_dictionary`) or Table Columns list is slow, filters out inherited fields from parent tables, and lacks quick download utilities.

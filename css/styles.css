@@ -299,3 +299,55 @@ body, html {
     margin-top: 4px;
     line-height: 1.3;
 }
+
+/* --- BULK ITEM BUILDER UI --- */
+.dropzone {
+    border: 2px dashed #879896;
+    border-radius: 6px;
+    background-color: #ffffff;
+    padding: 20px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dropzone:hover, .dropzone.dragover {
+    border-color: #1b5c53;
+    background-color: #e3ebea;
+}
+.dropzone-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+.dropzone-icon {
+    font-size: 28px;
+    margin-bottom: 2px;
+}
+.dropzone-text {
+    margin: 0;
+    font-size: 12px;
+    color: #425051;
+    font-weight: 600;
+}
+.inline-edit-input {
+    width: 100%;
+    padding: 2px 4px;
+    border: 1px solid #879896;
+    border-radius: 3px;
+    font-size: 10px;
+    box-sizing: border-box;
+}
+.inline-edit-input:focus {
+    outline: none;
+    border-color: #1b5c53;
+}
+.bulk-table-cell {
+    padding: 4px 6px;
+    border-bottom: 1px solid #ffebee;
+    vertical-align: middle;
+}

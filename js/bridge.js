@@ -117,14 +117,15 @@ const SNOW_Bridge = {
                 const iframeSrc = iframe ? (iframe.contentWindow.location.href || iframe.getAttribute('src') || '') : '';
                 
                 const parseUrl = (url) => {
-                    const match = url.match(/\/([a-zA-Z0-9_]+)\.do/);
+                    const decodedUrl = decodeURIComponent(url);
+                    const match = decodedUrl.match(/\/([a-zA-Z0-9_]+)\.do/);
                     if (match && match[1]) {
                         const tbl = match[1];
                         if (scTables.includes(tbl) || tbl.startsWith('sc_cat_item')) {
-                            const searchParams = new URLSearchParams(url.split('?')[1] || '');
-                            if (searchParams.has('sys_id')) {
+                            const sysIdMatch = decodedUrl.match(/[?&]sys_id=([a-f0-9]{32})/i);
+                            if (sysIdMatch && sysIdMatch[1]) {
                                 catItemTable = tbl;
-                                catItemSysId = searchParams.get('sys_id');
+                                catItemSysId = sysIdMatch[1];
                             }
                         }
                     }

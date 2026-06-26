@@ -1,4 +1,4 @@
-# 8. Feature Specification: Real-Time Log Streamer
+# 9. Feature Specification: Real-Time Log Streamer
 
 ## 1. Executive Summary
 Debugging server-side scripts, business rules, or integration flows requires checking the ServiceNow System Log (`syslog`). Navigating to `syslog_list.do`, filtering, and manually clicking refresh is slow and fragments the developer's attention.

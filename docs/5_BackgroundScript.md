@@ -1,4 +1,4 @@
-# 4. Feature Specification: Background Script Runner
+# 5. Feature Specification: Background Script Runner
 
 ## 1. Executive Summary
 ServiceNow administrators routinely write server-side JavaScript scripts to test APIs, query records, or run batch jobs. Navigating to the native `/sys.scripts.do` page takes developers away from their active tabs and features a basic, non-retaining textarea interface.
