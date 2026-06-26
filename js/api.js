@@ -24,7 +24,8 @@ const SNOW_API = {
     },
 
     searchUsers: async function (searchTerm) {
-        const query = `nameLIKE${searchTerm}^ORemailLIKE${searchTerm}^active=true`;
+        const sanitized = (searchTerm || '').replace(/[\^=]/g, "");
+        const query = `nameLIKE${sanitized}^ORemailLIKE${sanitized}^active=true`;
         const endpoint = `/api/now/table/sys_user?sysparm_query=${encodeURIComponent(query)}&sysparm_limit=5&sysparm_fields=sys_id,name,email,user_name`;
         const data = await this._fetch(endpoint);
         return data.result;
@@ -67,12 +68,16 @@ const SNOW_API = {
         return [{ sys_id: 'global', name: 'Global' }, ...data.result];
     },
 
-    fetchUpdateSets: async function (scopeId) {
+    fetchUpdateSets: async function (scopeId, searchTerm = "", limit = 20) {
         let query = `state=in progress`;
         if (scopeId && scopeId !== 'global') {
             query += `^application=${scopeId}`;
         }
-        const endpoint = `/api/now/table/sys_update_set?sysparm_query=${encodeURIComponent(query)}&sysparm_fields=sys_id,name&sysparm_limit=100`;
+        if (searchTerm) {
+            const sanitizedTerm = searchTerm.replace(/[\^=]/g, "");
+            query += `^nameLIKE${sanitizedTerm}`;
+        }
+        const endpoint = `/api/now/table/sys_update_set?sysparm_query=${encodeURIComponent(query)}&sysparm_fields=sys_id,name&sysparm_limit=${limit}`;
         const data = await this._fetch(endpoint);
         return data.result;
     },
@@ -113,15 +118,6 @@ const SNOW_API = {
         return data.result;
     },
 
-    exportDictionary: async function (tableName) {
-        // Uses GlideTableHierarchy to ensure we get inherited fields (like sys_created_on from Task)
-        const query = `nameINjavascript:new GlideTableHierarchy('${tableName}').getTables()^internal_type!=collection`;
-        const endpoint = `/api/now/table/sys_dictionary?sysparm_query=${encodeURIComponent(query)}&sysparm_fields=element,column_label,internal_type,reference,max_length&sysparm_limit=2000`;
-
-        const data = await this._fetch(endpoint);
-        return data.result;
-    },
-    
 /**
      * Recursively traces the table extension hierarchy via REST
      * to safely replicate GlideTableHierarchy without triggering security blocks.

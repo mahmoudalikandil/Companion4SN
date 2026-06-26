@@ -70,10 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnTrackFlow.disabled = false;
                 flowTrackerStatus.style.color = "#2e7d32";
                 flowTrackerStatus.textContent = "Flow Execution Context auto-detected!";
-            } else {
-                flowSysIdInput.addEventListener('input', (e) => {
-                    btnTrackFlow.disabled = (e.target.value.trim().length !== 32); 
-                });
             }
 
             switchPanel('panel-impersonate');
@@ -121,7 +117,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 users.forEach(user => {
                     const li = document.createElement('li');
-                    li.innerHTML = `<strong>${user.name}</strong> (${user.user_name})`;
+                    
+                    const strong = document.createElement('strong');
+                    strong.textContent = user.name;
+                    li.appendChild(strong);
+                    
+                    const textNode = document.createTextNode(` (${user.user_name})`);
+                    li.appendChild(textNode);
+                    
                     li.addEventListener('click', () => triggerImpersonation(user.sys_id, user.name));
                     searchResults.appendChild(li);
                 });
@@ -426,10 +429,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (level === '0' || level === 'error') { levelClass = 'log-level-error'; levelText = 'ERROR'; }
             if (level === '1' || level === 'warning') { levelClass = 'log-level-warning'; levelText = 'WARN'; }
 
-            div.innerHTML = `
-                <span class="log-meta">${time} | Source: ${source}</span>
-                <span class="${levelClass}">[${levelText}]</span> ${message}
-            `;
+            const metaSpan = document.createElement('span');
+            metaSpan.className = 'log-meta';
+            metaSpan.textContent = `${time} | Source: ${source}`;
+            div.appendChild(metaSpan);
+
+            div.appendChild(document.createTextNode(' '));
+
+            const levelSpan = document.createElement('span');
+            levelSpan.className = levelClass;
+            levelSpan.textContent = `[${levelText}]`;
+            div.appendChild(levelSpan);
+
+            div.appendChild(document.createTextNode(` ${message}`));
         }
 
         logTerminal.appendChild(div);
@@ -605,6 +617,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // We reuse the triggerFileDownload function from the Schema Exporter!
             triggerFileDownload(xml, `snow_payload_${Date.now()}.xml`, "application/xml");
             showXmlStatus("File downloaded.");
+        });
+    }
+
+    if (flowSysIdInput) {
+        flowSysIdInput.addEventListener('input', (e) => {
+            btnTrackFlow.disabled = (e.target.value.trim().length !== 32); 
         });
     }
 

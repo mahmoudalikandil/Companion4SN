@@ -9,7 +9,8 @@
     "scripting",
     "storage",
     "webNavigation",
-    "notifications"
+    "notifications",
+    "alarms"
   ],
   "host_permissions": [
     "*://*.service-now.com/*"
