@@ -1,4 +1,4 @@
-console.log("SNOW Companion Background Worker Ready.");
+// console.log("SNOW Companion Background Worker Ready.");
 
 // Listens for messages from the Popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -18,7 +18,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 });
 
 async function setupFlowTracking(url, token, sysId) {
-    console.log(`[Worker] Setting up flow tracking for: ${sysId}`);
+    // console.log(`[Worker] Setting up flow tracking for: ${sysId}`);
     
     // Save settings to storage
     chrome.storage.local.get({ activeFlows: {} }, async (data) => {
@@ -44,7 +44,7 @@ async function checkFlowStatus(sysId) {
 
         const endpoint = `${flow.url}/api/now/table/sys_flow_context/${sysId}?sysparm_fields=state,name`;
         try {
-            console.log(`[Worker] Polling flow status via alarm for: ${sysId}`);
+            // console.log(`[Worker] Polling flow status via alarm for: ${sysId}`);
             let res = await fetch(endpoint, {
                 headers: { 
                     'X-UserToken': flow.token, 
@@ -58,11 +58,11 @@ async function checkFlowStatus(sysId) {
             let state = resData.result.state;
             let flowName = resData.result.name;
 
-            console.log(`[Worker] Flow state for ${sysId}: ${state}`);
+            // console.log(`[Worker] Flow state for ${sysId}: ${state}`);
 
             // States: IN_PROGRESS, WAITING, ERROR, COMPLETE, CANCELLED
             if (state === 'COMPLETE' || state === 'ERROR' || state === 'CANCELLED') {
-                console.log(`[Worker] Flow Finished. State: ${state}`);
+                // console.log(`[Worker] Flow Finished. State: ${state}`);
                 
                 // Fire native Chrome Desktop Notification
                 chrome.notifications.create({

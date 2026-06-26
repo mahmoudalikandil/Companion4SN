@@ -135,7 +135,7 @@ const SNOW_API = {
      * to safely replicate GlideTableHierarchy without triggering security blocks.
      */
     _getTableHierarchy: async function(tableName) {
-        console.log(`[API] Resolving table hierarchy for: ${tableName}...`);
+        // console.log(`[API] Resolving table hierarchy for: ${tableName}...`);
         let hierarchy = [];
         let currentTable = tableName;
 
@@ -159,21 +159,21 @@ const SNOW_API = {
     },
 
     exportDictionary: async function(tableName) {
-        console.log(`[API] exportDictionary called for table: "${tableName}"`);
+        // console.log(`[API] exportDictionary called for table: "${tableName}"`);
         
         // 1. Get the full family tree of the table
         const hierarchy = await this._getTableHierarchy(tableName);
-        console.log(`[API] Hierarchy resolved successfully: ${hierarchy.join(', ')}`);
+        // console.log(`[API] Hierarchy resolved successfully: ${hierarchy.join(', ')}`);
 
         // 2. Query the dictionary using standard IN operator (100% REST safe)
         const query = `nameIN${hierarchy.join(',')}^internal_type!=collection`;
         const endpoint = `/api/now/table/sys_dictionary?sysparm_query=${encodeURIComponent(query)}&sysparm_fields=element,column_label,internal_type,reference,max_length&sysparm_limit=2000`;
         
-        console.log(`[API] Executing Request to Endpoint: ${endpoint}`);
+        // console.log(`[API] Executing Request to Endpoint: ${endpoint}`);
         
         const data = await this._fetch(endpoint);
         
-        console.log(`[API] Response received. Found ${data.result ? data.result.length : 0} records.`);
+        // console.log(`[API] Response received. Found ${data.result ? data.result.length : 0} records.`);
         return data.result;
     },
 

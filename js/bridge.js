@@ -1,7 +1,7 @@
 const SNOW_Bridge = {
     connectToInstance: async function() {
         try {
-            console.log("[Bridge] Initiating connection to active tab...");
+            // console.log("[Bridge] Initiating connection to active tab...");
             let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
             if (!tab || !tab.url || !tab.url.includes('.service-now.com')) {
@@ -20,7 +20,7 @@ const SNOW_Bridge = {
                 throw new Error("Could not locate g_ck token. Ensure you are logged in.");
             }
 
-            console.log("[Bridge] Connection successful. Data retrieved:", result);
+            // console.log("[Bridge] Connection successful. Data retrieved:", result);
             return result;
         } catch (error) {
             console.error("[Bridge] Connection Error:", error);
@@ -29,7 +29,7 @@ const SNOW_Bridge = {
     },
 
     _extractSnowData: function() {
-        console.log("[Bridge Content] Scanning window for table data...");
+        // console.log("[Bridge Content] Scanning window for table data...");
         let tableName = null;
         let flowContextId = null; // Variable for Flow Tracking
         const ignoreList = ['nav_to', 'sys_scripts', 'sys_update_set', 'ui_page', 'start', 'cancel'];

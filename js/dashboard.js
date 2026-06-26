@@ -1087,7 +1087,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadBulkBuilderMetadata() {
         if (!window.activeInstanceData) return;
         try {
-            console.log('[Bulk Builder] Fetching instance metadata for validations...');
+            // console.log('[Bulk Builder] Fetching instance metadata for validations...');
             const [scopes, categories, variableSets] = await Promise.all([
                 window.SNOW_API.fetchScopes(),
                 window.SNOW_API.fetchCategories(),
@@ -1096,7 +1096,35 @@ document.addEventListener('DOMContentLoaded', () => {
             bulkMetadata.scopes = scopes;
             bulkMetadata.categories = categories;
             bulkMetadata.variableSets = variableSets;
-            console.log('[Bulk Builder] Metadata successfully loaded.');
+            // console.log('[Bulk Builder] Metadata successfully loaded.');
+
+            // Pre-populate scopes dropdowns immediately to prevent duplicate fetches on panel switches
+            if (scopeSelect) {
+                scopeSelect.innerHTML = '';
+                scopes.forEach(scope => {
+                    const opt = document.createElement('option');
+                    opt.value = scope.sys_id;
+                    opt.textContent = scope.name;
+                    scopeSelect.appendChild(opt);
+                });
+                scopeSelect.disabled = false;
+                if (scopeSearch) scopeSearch.disabled = false;
+            }
+
+            if (clonerScopeSelect) {
+                clonerScopeSelect.innerHTML = '';
+                scopes.forEach(scope => {
+                    const opt = document.createElement('option');
+                    opt.value = scope.sys_id;
+                    opt.textContent = scope.name;
+                    clonerScopeSelect.appendChild(opt);
+                });
+            }
+
+            scopesLoaded = true;
+            if (scopeSelect && scopeSelect.value) {
+                loadUpdateSets(scopeSelect.value);
+            }
         } catch (e) {
             console.warn('[Bulk Builder] Error caching metadata: ', e);
         }
