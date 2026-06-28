@@ -1,0 +1,19 @@
+{
+  "name": "servicenow-companion",
+  "version": "2.0.0",
+  "description": "Advanced live-instance developer toolkit.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.23",
+    "@types/chrome": "^0.0.268",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.0"
+  }
+}
