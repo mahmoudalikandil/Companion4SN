@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ServiceNow Live Companion",
+  "name": "Scaler by P4",
   "version": "2.0",
   "description": "Advanced live-instance developer toolkit.",
   "permissions": [
@@ -21,5 +21,11 @@
   },
   "background": {
     "service_worker": "js/background.js"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["templates/ServiceNow_Bulk_Catalog_Items_Template.xlsx"],
+      "matches": ["*://*.service-now.com/*"]
+    }
+  ]
 }

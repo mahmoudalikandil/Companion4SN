@@ -36,7 +36,7 @@ const SNOW_API = {
         return await this._fetch(endpoint, 'POST', {});
     },
 
-    runBackgroundScript: async function (script, scope = 'global') {
+    runBackgroundScript: async function (script, scope = 'global', signal = null) {
         const url = `${window.activeInstanceData.url}/sys.scripts.do`;
 
         const formData = new URLSearchParams();
@@ -45,14 +45,19 @@ const SNOW_API = {
         formData.append('sys_scope', scope);
         formData.append('sysparm_ck', window.activeInstanceData.token);
 
-        const response = await fetch(url, {
+        const fetchOptions = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'text/html'
             },
             body: formData.toString()
-        });
+        };
+        if (signal) {
+            fetchOptions.signal = signal;
+        }
+
+        const response = await fetch(url, fetchOptions);
 
         const html = await response.text();
         const parser = new DOMParser();
@@ -117,14 +122,12 @@ const SNOW_API = {
         return true;
     },
 
-    /**
-     * Fetches the most recent system logs.
-     * We limit to 30 and sort descending to grab the absolute latest data efficiently.
-     */
-    fetchLogs: async function() {
-        // Exclude 'Evaluator' source noise if desired, but here we grab everything recent
-        const query = `ORDERBYDESCsys_created_on`;
-        const endpoint = `/api/now/table/syslog?sysparm_query=${encodeURIComponent(query)}&sysparm_fields=sys_id,level,message,source,sys_created_on&sysparm_limit=30`;
+    fetchLogs: async function(queryStr = 'ORDERBYDESCsys_created_on', limit = 30) {
+        let finalQuery = queryStr;
+        if (!finalQuery.includes('ORDERBYDESC')) {
+            finalQuery = `${finalQuery}^ORDERBYDESCsys_created_on`;
+        }
+        const endpoint = `/api/now/table/syslog?sysparm_query=${encodeURIComponent(finalQuery)}&sysparm_fields=sys_id,level,message,source,sys_created_on&sysparm_limit=${limit}`;
         
         const data = await this._fetch(endpoint);
         return data.result;
@@ -767,7 +770,85 @@ const SNOW_API = {
 
     var itemMap = {}; // Maps temp_id -> sys_id of created catalog item
     var variableMap = {}; // Maps temp_id + '_' + variable_name -> sys_id of created variable
-    var errorsCount = 0;
+    var createdCicLinks = []; // Array of sc_cat_item_catalog sys_ids
+    var createdChoices = []; // Array of question_choice sys_ids
+    var createdVarSetLinks = []; // Array of io_set_item sys_ids
+    var createdUiPolicies = []; // Array of catalog_ui_policy sys_ids
+    var createdUiPolicyActions = []; // Array of catalog_ui_policy_action sys_ids
+
+    function performCleanup() {
+        gs.print('[INFO] Reverting database changes (Cleanup)...');
+        
+        // Delete UI Policy Actions
+        for (var aId = 0; aId < createdUiPolicyActions.length; aId++) {
+            var actDGr = new GlideRecord('catalog_ui_policy_action');
+            actDGr.setWorkflow(false);
+            if (actDGr.get(createdUiPolicyActions[aId])) {
+                actDGr.deleteRecord();
+            }
+        }
+        
+        // Delete UI Policies
+        for (var pId = 0; pId < createdUiPolicies.length; pId++) {
+            var polDGr = new GlideRecord('catalog_ui_policy');
+            polDGr.setWorkflow(false);
+            if (polDGr.get(createdUiPolicies[pId])) {
+                polDGr.deleteRecord();
+            }
+        }
+
+        // Delete Variable Set Links
+        for (var linkId = 0; linkId < createdVarSetLinks.length; linkId++) {
+            var linkDGr = new GlideRecord('io_set_item');
+            linkDGr.setWorkflow(false);
+            if (linkDGr.get(createdVarSetLinks[linkId])) {
+                linkDGr.deleteRecord();
+            }
+        }
+
+        // Delete Question Choices
+        for (var choiceId = 0; choiceId < createdChoices.length; choiceId++) {
+            var choiceDGr = new GlideRecord('question_choice');
+            choiceDGr.setWorkflow(false);
+            if (choiceDGr.get(createdChoices[choiceId])) {
+                choiceDGr.deleteRecord();
+            }
+        }
+
+        // Delete Variables
+        for (var varKey in variableMap) {
+            var varDGr = new GlideRecord('item_option_new');
+            varDGr.setWorkflow(false);
+            if (varDGr.get(variableMap[varKey])) {
+                varDGr.deleteRecord();
+            }
+        }
+
+        // Delete Catalog Item Catalog Links
+        for (var cicId = 0; cicId < createdCicLinks.length; cicId++) {
+            var cicDGr = new GlideRecord('sc_cat_item_catalog');
+            cicDGr.setWorkflow(false);
+            if (cicDGr.get(createdCicLinks[cicId])) {
+                cicDGr.deleteRecord();
+            }
+        }
+
+        // Delete Catalog Items
+        for (var itemKey in itemMap) {
+            var tbl = 'sc_cat_item';
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].temp_id + '' === itemKey + '') {
+                    tbl = items[i].table || 'sc_cat_item';
+                    break;
+                }
+            }
+            var itemDGr = new GlideRecord(tbl);
+            itemDGr.setWorkflow(false);
+            if (itemDGr.get(itemMap[itemKey])) {
+                itemDGr.deleteRecord();
+            }
+        }
+    }
 
     try {
         // 1. Process Catalog Items
@@ -817,6 +898,9 @@ const SNOW_API = {
             if (categoryId) {
                 itemGr.setValue('category', categoryId);
             }
+            itemGr.setValue('active', (item.active === 'true' || item.active === true || item.active === 1 || item.active === '1' || (item.active + '').toLowerCase() === 'yes') ? 'true' : 'false');
+            itemGr.setValue('order', item.order || 100);
+            itemGr.setValue('hide_sp', (item.hide_portal === 'true' || item.hide_portal === true || item.hide_portal === 1 || item.hide_portal === '1' || (item.hide_portal + '').toLowerCase() === 'yes') ? 'true' : 'false');
             
             var itemSysId = itemGr.insert();
             if (!itemSysId) {
@@ -825,6 +909,46 @@ const SNOW_API = {
 
             itemMap[tempId] = itemSysId;
             gs.print('[SUCCESS] Created Catalog Item: ' + name + ' (sys_id: ' + itemSysId + ')');
+
+            // Parse Catalogs and insert relationship records in sc_cat_item_catalog
+            var catalogsStr = item.catalogs || '';
+            if (catalogsStr) {
+                var catalogNames = catalogsStr.split(',');
+                for (var cIdx = 0; cIdx < catalogNames.length; cIdx++) {
+                    var catalogName = catalogNames[cIdx].trim();
+                    if (!catalogName) continue;
+                    
+                    var catalogGr = new GlideRecord('sc_catalog');
+                    catalogGr.addQuery('title', catalogName).addOrCondition('name', catalogName).addOrCondition('sys_id', catalogName);
+                    catalogGr.query();
+                    if (catalogGr.next()) {
+                        var catalogSysId = catalogGr.getUniqueValue();
+                        
+                        // Check if relationship already exists before trying to insert it
+                        var cicExistGr = new GlideRecord('sc_cat_item_catalog');
+                        cicExistGr.addQuery('sc_cat_item', itemSysId);
+                        cicExistGr.addQuery('sc_catalog', catalogSysId);
+                        cicExistGr.query();
+                        if (!cicExistGr.hasNext()) {
+                            var cicGr = new GlideRecord('sc_cat_item_catalog');
+                            cicGr.initialize();
+                            cicGr.setValue('sc_cat_item', itemSysId);
+                            cicGr.setValue('sc_catalog', catalogSysId);
+                            var cicSysId = cicGr.insert();
+                            if (!cicSysId) {
+                                gs.print('[WARNING] Failed to link Catalog Item to Catalog: ' + catalogName);
+                            } else {
+                                createdCicLinks.push(cicSysId);
+                                gs.print('[SUCCESS] Linked Catalog Item to Catalog: ' + catalogName + ' (sys_id: ' + catalogSysId + ')');
+                            }
+                        } else {
+                            gs.print('[INFO] Catalog Item is already linked to Catalog: ' + catalogName);
+                        }
+                    } else {
+                        gs.print('[WARNING] Catalog "' + catalogName + '" not found.');
+                    }
+                }
+            }
         }
 
         // 2. Process Variables
@@ -840,7 +964,11 @@ const SNOW_API = {
             'checkbox': '7', '7': '7',
             'date': '9', '9': '9',
             'date/time': '10', 'date_time': '10', '10': '10',
-            'integer': '16', '16': '16'
+            'integer': '16', '16': '16',
+            'html': '23', '23': '23',
+            'lookup select box': '18', 'lookup_select_box': '18', '18': '18',
+            'list collector': '21', 'list_collector': '21', '21': '21',
+            'attachment': '33', '33': '33'
         };
 
         for (var j = 0; j < variables.length; j++) {
@@ -863,10 +991,15 @@ const SNOW_API = {
             varGr.initialize();
             varGr.setValue('cat_item', itemMap[itemTempId]);
             varGr.setValue('name', varName);
-            varGr.setValue('label', varLabel);
+            varGr.setValue('question_text', varLabel);
             varGr.setValue('type', typeVal);
             varGr.setValue('order', v.order || '100');
             varGr.setValue('mandatory', (v.mandatory === 'true' || v.mandatory === true || v.mandatory === 1 || v.mandatory === '1' || (v.mandatory + '').toLowerCase() === 'yes') ? 'true' : 'false');
+            varGr.setValue('active', (v.active === 'true' || v.active === true || v.active === 1 || v.active === '1' || (v.active + '').toLowerCase() === 'yes') ? 'true' : 'false');
+            varGr.setValue('default_value', v.default_value || '');
+            varGr.setValue('tooltip', v.tooltip || '');
+            varGr.setValue('help_text', v.help_text || '');
+            varGr.setValue('show_help', (v.help_text && v.help_text.trim() !== '') ? 'true' : 'false');
             
             if (typeVal === '8' && v.reference) {
                 varGr.setValue('reference', v.reference);
@@ -898,6 +1031,8 @@ const SNOW_API = {
                     var choiceSysId = choiceGr.insert();
                     if (!choiceSysId) {
                         gs.print('[WARNING] Failed to insert choice: ' + cLabel + ' for variable ' + varName);
+                    } else {
+                        createdChoices.push(choiceSysId);
                     }
                 }
             }
@@ -924,13 +1059,15 @@ const SNOW_API = {
                 linkGr.initialize();
                 linkGr.setValue('sc_cat_item', itemMap[itemTempId]);
                 linkGr.setValue('variable_set', setLinkId);
+                linkGr.setValue('order', vs.order || 100);
                 var linkSysId = linkGr.insert();
                 if (!linkSysId) {
                     throw new Error('Failed to link Variable Set "' + setName + '" to Catalog Item Temp ID: ' + itemTempId);
                 }
+                createdVarSetLinks.push(linkSysId);
                 gs.print('[SUCCESS] Linked Variable Set: ' + setName + ' (link_id: ' + linkSysId + ')');
             } else {
-                throw new Error('Variable Set not found: ' + setName);
+                gs.print('[WARNING] Variable Set not found: ' + setName);
             }
         }
 
@@ -1024,6 +1161,7 @@ const SNOW_API = {
             if (!policySysId) {
                 throw new Error('Failed to insert Catalog UI Policy: ' + group.short_description);
             }
+            createdUiPolicies.push(policySysId);
             gs.print('[SUCCESS] Created UI Policy: ' + group.short_description + ' (sys_id: ' + policySysId + ')');
 
             for (var a = 0; a < group.actions.length; a++) {
@@ -1064,32 +1202,189 @@ const SNOW_API = {
                 if (!actSysId) {
                     gs.print('[WARNING] Failed to insert UI Policy Action for variable ' + targetVarName);
                 } else {
+                    createdUiPolicyActions.push(actSysId);
                     gs.print('[SUCCESS] Created UI Policy Action for variable: ' + targetVarName);
                 }
             }
         }
 
         if (isDryRun) {
+            performCleanup();
             gs.print('>>>DRY_RUN_PASSED<<<');
-            if (transaction) {
-                gs.print('[INFO] Reverting all database inserts (Dry Run Mode).');
-                transaction.rollback();
-            } else {
-                throw new Error('DRY_RUN_ROLLBACK');
-            }
         } else {
             gs.print('>>>BULK_SUCCESS<<<');
         }
 
     } catch (e) {
         gs.print('[ERROR] Script Execution Terminated: ' + e.message);
-        if (transaction) {
-            gs.print('[INFO] Rolling back transaction.');
-            transaction.rollback();
-        }
+        performCleanup();
         gs.print('>>>BULK_ERROR<<<');
     }
 })();`;
+        return await this.runBackgroundScript(script, 'global');
+    },
+
+    fetchStatsDo: async function () {
+        if (!window.activeInstanceData || !window.activeInstanceData.token) {
+            throw new Error("No active instance connection.");
+        }
+        const url = `${window.activeInstanceData.url}/stats.do`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-UserToken': window.activeInstanceData.token
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`API Error fetching stats: ${response.status} ${response.statusText}`);
+        }
+        const html = await response.text();
+        return this.parseStatsHtml(html);
+    },
+
+    parseStatsHtml: function (html) {
+        const stats = {
+            version: 'Unknown Version',
+            buildTag: '',
+            freeMemory: 0,
+            maxMemory: 0,
+            usedMemory: 0,
+            sessions: '--',
+            processorTime: '--',
+            dbActive: '--',
+            dbTotal: '--',
+            dbLatency: '',
+            rawHeader: ''
+        };
+
+        stats.rawHeader = html.substring(0, 1500).replace(/<[^>]*>/g, '').trim();
+
+        const releaseMatch = html.match(/ServiceNow release:\s*([^\r\n<]+)/i);
+        const buildMatch = html.match(/Build name:\s*([^\r\n<]+)/i);
+        const buildDateMatch = html.match(/Build date:\s*([^\r\n<]+)/i);
+        
+        if (buildMatch) {
+            stats.version = buildMatch[1].trim();
+        } else if (releaseMatch) {
+            stats.version = releaseMatch[1].trim();
+        }
+        
+        if (buildDateMatch) {
+            stats.buildTag = `Build Date: ${buildDateMatch[1].trim()}`;
+        } else if (releaseMatch && buildMatch) {
+            stats.buildTag = releaseMatch[1].trim();
+        }
+
+        // Servlet Memory vs Classic Memory Parser
+        const servletMemBlock = html.match(/Servlet Memory\s*[\r\n]+Max memory:\s*([\d.]+)\s*[\r\n]+Allocated:\s*([\d.]+)\s*[\r\n]+In use:\s*([\d.]+)/i);
+        if (servletMemBlock) {
+            const maxMB = parseFloat(servletMemBlock[1]);
+            const usedMB = parseFloat(servletMemBlock[3]);
+            stats.maxMemory = maxMB * 1024 * 1024;
+            stats.usedMemory = usedMB * 1024 * 1024;
+            stats.freeMemory = stats.maxMemory - stats.usedMemory;
+        } else {
+            const freeMemMatch = html.match(/Free memory:\s*([\d,]+)\s*bytes/i);
+            const maxMemMatch = html.match(/Max memory:\s*([\d,]+)\s*bytes/i);
+            
+            if (freeMemMatch) {
+                stats.freeMemory = parseInt(freeMemMatch[1].replace(/,/g, ''), 10);
+            }
+            if (maxMemMatch) {
+                stats.maxMemory = parseInt(maxMemMatch[1].replace(/,/g, ''), 10);
+            }
+            if (stats.maxMemory && stats.freeMemory) {
+                stats.usedMemory = stats.maxMemory - stats.freeMemory;
+            }
+        }
+
+        // Sessions count matching Logged in sessions: 1 (5 active)
+        const sessionMatch = html.match(/(?:Logged in sessions|Active user sessions|Logged in users|Active sessions):\s*(\d+)(?:\s*\(\s*(\d+)\s*active\s*\))?/i);
+        if (sessionMatch) {
+            if (sessionMatch[2]) {
+                stats.sessions = `${sessionMatch[1]} (${sessionMatch[2]} active)`;
+            } else {
+                stats.sessions = sessionMatch[1];
+            }
+        } else {
+            const altSessionMatch = html.match(/sessions:\s*(\d+)/i);
+            if (altSessionMatch) stats.sessions = altSessionMatch[1];
+        }
+
+        // Processor speed / Transactions
+        const procMatch = html.match(/(?:Completed requests|Processor time):\s*([\d,]+)\s*ms/i);
+        const txsCountMatch = html.match(/Transactions:\s*(\d+)/i);
+        if (procMatch) {
+            stats.processorTime = procMatch[1];
+        } else if (txsCountMatch) {
+            stats.processorTime = `${parseInt(txsCountMatch[1], 10).toLocaleString()} (Tx total)`;
+        }
+
+        // Database Connection Pool Block vs Classic
+        const dbPoolBlock = html.match(/Prefix:\s*glide[\s\S]*?Busy:\s*(\d+)[\s\S]*?Total:\s*(\d+)/i);
+        if (dbPoolBlock) {
+            stats.dbActive = dbPoolBlock[1];
+            stats.dbTotal = dbPoolBlock[2];
+        } else {
+            const dbPoolMatch = html.match(/pool.*:\s*(\d+)\s*active,\s*(\d+)\s*total/i) || 
+                                html.match(/connections.*:\s*(\d+)\s*active,\s*(\d+)\s*total/i) ||
+                                html.match(/(\d+)\s*active\s*(?:connections|pool).*?(\d+)\s*total/i);
+            if (dbPoolMatch) {
+                stats.dbActive = dbPoolMatch[1];
+                stats.dbTotal = dbPoolMatch[2];
+            }
+        }
+
+        const dbLatencyMatch = html.match(/Database latency:\s*(\d+)/i);
+        if (dbLatencyMatch) {
+            stats.dbLatency = dbLatencyMatch[1];
+        }
+
+        return stats;
+    },
+
+    getActiveTransactions: async function () {
+        const endpoint = '/api/now/table/v_transaction?sysparm_fields=sys_id,age,url,thread_name,state&sysparm_limit=50&sysparm_query=ORDERBYDESCage';
+        const data = await this._fetch(endpoint);
+        return data.result;
+    },
+
+    cancelCurrentTransaction: async function () {
+        if (!window.activeInstanceData) {
+            throw new Error("No active instance connection.");
+        }
+        const url = `${window.activeInstanceData.url}/cancel_my_transaction.do?sysparm_status=cancel`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-UserToken': window.activeInstanceData.token
+            }
+        });
+        return response.ok;
+    },
+
+    cancelTransactionThread: async function (threadSysId) {
+        const script = `(function() {
+            try {
+                var tm = GlideTransactionManager.get();
+                var txList = tm.getActiveTransactions();
+                var cancelled = false;
+                for (var i = 0; i < txList.size(); i++) {
+                    var tx = txList.get(i);
+                    if (tx.getSysID() == '${threadSysId}') {
+                        tx.cancel();
+                        cancelled = true;
+                        gs.print('[SUCCESS] Thread terminated: ' + '${threadSysId}');
+                        break;
+                    }
+                }
+                if (!cancelled) {
+                    gs.print('[WARNING] Thread not found in active transaction manager.');
+                }
+            } catch (e) {
+                gs.print('[ERROR] Failed to cancel thread: ' + e.message);
+            }
+        })();`;
         return await this.runBackgroundScript(script, 'global');
     }
 };

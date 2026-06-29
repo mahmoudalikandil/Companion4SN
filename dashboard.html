@@ -11,7 +11,7 @@
 <body>
 
     <header class="app-header">
-        <h1>ServiceNow Live Companion</h1>
+        <h1>Scaler by P4</h1>
         <div class="status-indicator error" id="connStatus">Disconnected</div>
     </header>
 
@@ -39,6 +39,8 @@
                     <li data-target="panel-logs">Real-Time Logs</li>
                     <li data-target="panel-xml">XML Payload Studio</li>
                     <li data-target="panel-acl">ACL & Role Analyzer</li>
+                    <li data-target="panel-stats">Instance Stats</li>
+                    <li data-target="panel-cancel-tx">Cancel Transactions</li>
                 </ul>
             </div>
         </aside>
@@ -128,9 +130,39 @@
                     <div class="input-group">
                         <select id="snippetSelector" class="scope-select">
                             <option value="">-- Load Snippet --</option>
-                            <option value="incident">Get 5 Recent Incidents</option>
-                            <option value="user">Count Active Users</option>
-                            <option value="property">Check System Property</option>
+                            <optgroup label="Database & Queries">
+                                <option value="incident">Get 5 Recent Incidents</option>
+                                <option value="user">Count Active Users</option>
+                                <option value="property">Check System Property</option>
+                                <option value="glide_aggregate">GlideAggregate Count</option>
+                                <option value="sys_id_search">Global sys_id Search</option>
+                                <option value="table_size">Estimated Table Size</option>
+                            </optgroup>
+                            <optgroup label="Diagnostics & Performance">
+                                <option value="transactions">List Active Transactions</option>
+                                <option value="slow_br">Find Slow Trackers</option>
+                                <option value="mid_servers">Down MID Servers</option>
+                                <option value="workflow_active">Active Workflow Contexts</option>
+                                <option value="attachment_size">Largest Attachments</option>
+                                <option value="portal_errors">Recent Portal Errors</option>
+                            </optgroup>
+                            <optgroup label="Administration & Cleanup">
+                                <option value="cache">Flush System Cache</option>
+                                <option value="events">Check Ready Events</option>
+                                <option value="empty_groups">Find Empty Groups</option>
+                                <option value="update_set_preview">Update Set Preview Errors</option>
+                                <option value="import_set_errors">Import Set Row Errors</option>
+                                <option value="user_login_history">Recent User Logins</option>
+                            </optgroup>
+                            <optgroup label="Advanced Scripting">
+                                <option value="impersonate">User Impersonation Mock</option>
+                                <option value="role_members">List Admins/Role Members</option>
+                                <option value="br_search">Search Scripts in Rules</option>
+                                <option value="script_include_check">Run Script Include Method</option>
+                                <option value="audit_log">Audit Trail for Record</option>
+                                <option value="trigger_job">Trigger Scheduled Job</option>
+                                <option value="rest_call">Outbound REST Message V2</option>
+                            </optgroup>
                         </select>
                         <select id="bgScope" class="scope-select">
                             <option value="global">Global</option>
@@ -143,7 +175,10 @@ gr.query();
 while(gr.next()) {
     gs.info(gr.number + ' - ' + gr.short_description);
 }</textarea>
-                <button id="btnRunScript" class="primary-btn mt-10">Execute Script</button>
+                <div class="action-buttons-row mt-10">
+                    <button id="btnRunScript" class="primary-btn">Execute Script</button>
+                    <button id="btnCancelScript" class="secondary-btn hidden" style="border-color: #cb1214; color: #cb1214;">Cancel Run</button>
+                </div>
                 <div class="results-section hidden" id="scriptResultsBox">
                     <h3>Output Log</h3>
                     <pre id="scriptOutput" class="console-output"></pre>
@@ -355,12 +390,94 @@ while(gr.next()) {
                 </div>
             </div>
 
+            <div class="tool-panel hidden" id="panel-stats">
+                <div class="panel-header">
+                    <h2>Instance Stats (stats.do)</h2>
+                    <button id="btnReloadStats" class="secondary-btn">Reload Stats</button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stats-card full-width">
+                        <h4>ServiceNow Version</h4>
+                        <div id="statVersion" class="stats-value">Loading...</div>
+                        <div id="statBuildTag" class="stats-subtext">Fetching details...</div>
+                    </div>
+                    <div class="stats-card">
+                        <h4>Memory Allocation</h4>
+                        <div class="stats-value" id="statMemoryRatio">0 MB / 0 MB</div>
+                        <div class="stats-subtext" id="statMemoryPct">0% Used</div>
+                        <div class="progress-bar-container">
+                            <div class="progress-fill" id="statMemoryBar"></div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <h4>Servlet Diagnostics</h4>
+                        <div class="stats-value" id="statSessions">Sessions: --</div>
+                        <div class="stats-subtext" id="statTime">Processor Time: -- ms</div>
+                    </div>
+                    <div class="stats-card full-width">
+                        <h4>Database Pool Sizing</h4>
+                        <div class="stats-value" id="statDbPool">Active Connections: -- / Capacity: --</div>
+                        <div class="stats-subtext" id="statDbInfo">Fetching active DB pool status...</div>
+                    </div>
+                </div>
+                <div class="results-section">
+                    <h3>Raw stats.do Header Output</h3>
+                    <div class="raw-output-box" id="rawStatsOutput">Awaiting reload...</div>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-cancel-tx">
+                <div class="panel-header">
+                    <h2>Cancel Transactions (cancel_my_transaction.do)</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btnRefreshTx" class="secondary-btn">Refresh Transactions</button>
+                        <button id="btnQuickCancelTx" class="primary-btn" style="width: auto;">Cancel Current Tab Thread</button>
+                    </div>
+                </div>
+                <p style="font-size: 11px; color: var(--p4m-text-muted); margin-bottom: 10px; line-height: 1.4;">
+                    Displays active user session threads queryable via <strong>v_transaction</strong>. Click <strong>Cancel Thread</strong> to terminate a specific locked transaction, or use the quick cancel action to end the current page's active execution thread.
+                </p>
+                <div class="tx-table-container">
+                    <table class="tx-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 150px;">Thread Name</th>
+                                <th style="width: 70px;">Age (sec)</th>
+                                <th>URL / Action</th>
+                                <th style="width: 80px; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--p4m-text-muted); padding: 20px;">
+                                    Click 'Refresh Transactions' to fetch active session records.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="txStatus" style="margin-top: 10px; font-size: 12px; font-weight: bold; color: var(--p4m-primary-color);"></div>
+            </div>
+
         </section>
     </main>
 
     <script src="js/libs/xlsx.mini.min.js" defer></script>
     <script src="js/bridge.js" defer></script>
     <script src="js/api.js" defer></script>
+    <!-- Feature Modules -->
+    <script src="js/modules/impersonator.js" defer></script>
+    <script src="js/modules/bg_script.js" defer></script>
+    <script src="js/modules/update_sets.js" defer></script>
+    <script src="js/modules/schema_exporter.js" defer></script>
+    <script src="js/modules/flow_tracker.js" defer></script>
+    <script src="js/modules/log_viewer.js" defer></script>
+    <script src="js/modules/xml_studio.js" defer></script>
+    <script src="js/modules/catalog_cloner.js" defer></script>
+    <script src="js/modules/acl_analyzer.js" defer></script>
+    <script src="js/modules/bulk_builder.js" defer></script>
+    <script src="js/modules/instance_stats.js" defer></script>
+    <script src="js/modules/cancel_tx.js" defer></script>
     <script src="js/dashboard.js" defer></script>
 </body>
 

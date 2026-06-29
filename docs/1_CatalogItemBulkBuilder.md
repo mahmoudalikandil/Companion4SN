@@ -14,10 +14,10 @@ The **Excel-Based Catalog Item Bulk Builder** enables developers to download a s
 - **Data Validation Dropdowns:** Queries ServiceNow REST APIs during download to fetch active Scopes, Categories, and Variable Sets, embedding them directly as native dropdown validation lists inside the Excel sheets.
 
 ### B. Relational Multi-Sheet Workbook
-- **Tab 1: Catalog Items:** The parent record details linked via a numeric `Item Temp ID` (e.g. `1`, `2`, `3`).
-- **Tab 2: Variables:** Replicated variables linked to parent items via `Item Temp ID` reference keys.
-- **Tab 3: Variable Sets:** Variable set link mappings referencing parent items.
-- **Tab 4: UI Policies:** UI policies and condition logic linked to parent items.
+- **Tab 1: Catalog Items:** The parent record details linked via a numeric `Item Temp ID` (e.g. `1`, `2`, `3`). Includes fields: `Temp ID`, `Name`, `Short Description`, `Description`, `Category`, `Scope`, `Table Class`, `Active` (Yes/No), `Catalogs` (comma-separated list), and `Order`.
+- **Tab 2: Variables:** Replicated variables linked to parent items via `Item Temp ID` reference keys. Includes fields: `Item Temp ID`, `Name`, `Label`, `Type` (user-facing ServiceNow labels or type integer codes), `Order`, `Active` (Yes/No), `Mandatory` (Yes/No), `Default Value`, `Help Text` (toggles `show_help`), `Tooltip`, `Reference Table` (for Reference type variables), and `Choices` (comma-separated choices list).
+- **Tab 3: Variable Sets:** Variable set link mappings referencing parent items. Includes fields: `Item Temp ID`, `Variable Set Name`, and relationship `Order`.
+- **Tab 4: UI Policies:** UI policies and condition logic linked to parent items. Includes fields: `Item Temp ID`, `Short Description`, `Conditions`, `Variable Name`, `Mandatory` (Yes/No/Leave), `Read Only` (Yes/No/Leave), and `Visible` (Yes/No/Leave).
 
 ### C. Client-Side Pre-validation & Quick-Fix
 - **Description:** Scans the uploaded spreadsheet locally using **SheetJS** to identify missing required fields or validation discrepancies.
@@ -52,19 +52,49 @@ The **Excel-Based Catalog Item Bulk Builder** enables developers to download a s
     "items": [
       {
         "temp_id": 1,
-        "name": "Standard Laptop Request",
+        "name": "Developer Laptop Request",
+        "short_description": "Request a new standard developer laptop",
+        "description": "Standard corporate developer laptop specifications...",
         "category": "Hardware",
-        "scope": "global",
-        "table": "sc_cat_item"
+        "scope": "Global",
+        "table": "sc_cat_item",
+        "active": "Yes",
+        "catalogs": "Service Catalog",
+        "order": 100
       }
     ],
     "variables": [
       {
         "item_temp_id": 1,
-        "name": "asset_tag",
-        "label": "Asset Tag",
-        "type": "Single Line Text",
+        "name": "laptop_model",
+        "label": "Select Laptop Model",
+        "type": "Select Box",
+        "order": 100,
+        "active": "Yes",
+        "mandatory": "Yes",
+        "default_value": "macbook_pro",
+        "help_text": "Select the laptop model you prefer",
+        "tooltip": "Please choose carefully",
+        "reference": "",
+        "choices": "MacBook Pro 16:macbook_pro, ThinkPad P1:thinkpad_p1"
+      }
+    ],
+    "variable_sets": [
+      {
+        "item_temp_id": 1,
+        "variable_set": "Standard Employee Fields",
         "order": 100
+      }
+    ],
+    "ui_policies": [
+      {
+        "item_temp_id": 1,
+        "short_description": "Show location for MacBook Pro",
+        "conditions": "laptop_model=macbook_pro",
+        "variable_name": "shipping_location",
+        "mandatory": "Yes",
+        "read_only": "No",
+        "visible": "Yes"
       }
     ]
   }
