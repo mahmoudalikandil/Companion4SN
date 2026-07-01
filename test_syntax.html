@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Full Extension Integration Check</title>
+    <script>
+        window.errors = [];
+        window.onerror = function(message, source, lineno, colno, error) {
+            window.errors.push(message + " in " + source + " at line " + lineno + ":" + colno);
+        };
+    </script>
+</head>
+<body>
+    <div id="status">Testing...</div>
+
+    <!-- Mocking basic DOM elements required by initializers -->
+    <div id="btnConnect">Retry Connection</div>
+    <div id="connStatus" class="status-indicator error">Connection Failed</div>
+    <div id="toolNav"></div>
+    <div id="flowSysIdInput"></div>
+    <div id="btnTrackFlow"></div>
+    <div id="flowTrackerStatus"></div>
+    <div id="clonerSourceTable"></div>
+    <div id="clonerSourceSysId"></div>
+    <div id="clonerSourceName"></div>
+    <div id="aclUserSearch"></div>
+    <div id="btnAclSearchUser"></div>
+    <div id="aclUserSearchResults"></div>
+    <div id="btnAclCheckCustomTable"></div>
+    <div id="aclCustomTableInput"></div>
+    <div id="aclTargetUserSysId"></div>
+    <div id="aclTargetUserName"></div>
+    <div id="intMsgName"></div>
+    <div id="intMsgEndpoint"></div>
+    <div id="intMsgAuth"></div>
+    <div id="intBasicAuthGroup"></div>
+    <div id="btnIntAddHeader"></div>
+    <div id="intHeadersBody"></div>
+    <div id="btnIntAddMethod"></div>
+    <div id="intMethodsList"></div>
+    <div id="btnIntDeploy"></div>
+    <div id="btnIntDownloadXml"></div>
+    <div id="intTesterTabHeader"></div>
+    <div id="intTestSelectMethod"></div>
+    <div id="btnIntRunTest"></div>
+    <div id="intTestSnippetOutput"></div>
+
+    <script src="js/libs/xlsx.mini.min.js"></script>
+    <script src="js/bridge.js"></script>
+    <script src="js/snow_templates.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/modules/impersonator.js"></script>
+    <script src="js/modules/bg_script.js"></script>
+    <script src="js/modules/update_sets.js"></script>
+    <script src="js/modules/schema_exporter.js"></script>
+    <script src="js/modules/flow_tracker.js"></script>
+    <script src="js/modules/log_viewer.js"></script>
+    <script src="js/modules/xml_studio.js"></script>
+    <script src="js/modules/catalog_cloner.js"></script>
+    <script src="js/modules/acl_analyzer.js"></script>
+    <script src="js/modules/bulk_builder.js"></script>
+    <script src="js/modules/instance_stats.js"></script>
+    <script src="js/modules/cancel_tx.js"></script>
+    <script src="js/modules/lld_generator.js"></script>
+    <script src="js/modules/integration_studio.js"></script>
+    <script src="js/dashboard.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const status = document.getElementById("status");
+            if (window.errors.length > 0) {
+                status.textContent = "FAILURE:\n" + window.errors.join("\n");
+            } else {
+                status.textContent = "SUCCESS: All scripts loaded and compiled without errors.";
+            }
+        });
+    </script>
+</body>
+</html>

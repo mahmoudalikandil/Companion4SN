@@ -692,3 +692,182 @@ body, html {
     gap: 10px;
     margin-top: 10px;
 }
+
+/* LLD Generator styles */
+.lld-tabs-container {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    flex-shrink: 0;
+}
+.tab-strip {
+    display: flex;
+    gap: 5px;
+    border-bottom: 2px solid var(--p4m-border-color);
+    padding-bottom: 5px;
+}
+.tab-strip .tab-btn {
+    padding: 6px 12px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--p4m-text-muted);
+    transition: all 0.2s;
+    outline: none;
+}
+.tab-strip .tab-btn:hover {
+    color: var(--p4m-primary-color);
+}
+.tab-strip .tab-btn.active {
+    color: var(--p4m-primary-color);
+    border-bottom: 2px solid var(--p4m-primary-color);
+}
+.tab-strip.preview-tabs {
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--p4m-border-color);
+}
+.tab-strip.preview-tabs .tab-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+}
+
+.lld-tab-content, .lld-preview-tab-pane {
+    width: 100%;
+}
+.lld-tab-content.hidden, .lld-preview-tab-pane.hidden {
+    display: none !important;
+}
+
+.lld-preview-content-box h4 {
+    margin: 15px 0 8px 0;
+    font-size: 12px;
+    color: var(--p4m-text-dark);
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+.lld-preview-content-box p {
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--p4m-text-muted);
+    margin-bottom: 10px;
+}
+.lld-preview-table-container {
+    overflow-x: auto;
+    margin-bottom: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+.lld-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+    text-align: left;
+    background: #ffffff;
+}
+.lld-preview-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-bottom: 1px solid #cbd5e1;
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: 0.3px;
+}
+.lld-preview-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: top;
+}
+.lld-preview-table tr:last-child td {
+    border-bottom: none;
+}
+.lld-preview-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.lld-collapsible {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+.lld-collapsible-header {
+    background: #f8fafc;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 11px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    transition: background 0.2s;
+    color: #1e293b;
+}
+.lld-collapsible-header:hover {
+    background: #f1f5f9;
+}
+.lld-collapsible-header::after {
+    content: '▼';
+    font-size: 8px;
+    transition: transform 0.2s;
+}
+.lld-collapsible.collapsed .lld-collapsible-header::after {
+    transform: rotate(-90deg);
+}
+.lld-collapsible.collapsed .lld-collapsible-content {
+    display: none !important;
+}
+.lld-collapsible-content {
+    padding: 12px;
+    border-top: 1px solid #e2e8f0;
+    background: #ffffff;
+}
+
+.lld-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+    margin-bottom: 15px;
+}
+.lld-summary-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+}
+.lld-summary-card .card-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--p4m-primary-color);
+}
+.lld-summary-card .card-key {
+    font-size: 9px;
+    color: var(--p4m-text-muted);
+    text-transform: uppercase;
+    margin-top: 3px;
+    font-weight: 600;
+}
+.badge-us-type {
+    font-size: 8px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    display: inline-block;
+    vertical-align: middle;
+}
+.badge-us-type.catalog { background-color: #e0f2fe; color: #0369a1; }
+.badge-us-type.data { background-color: #fef3c7; color: #b45309; }
+.badge-us-type.logic { background-color: #dcfce7; color: #15803d; }
+.badge-us-type.integration { background-color: #f3e8ff; color: #6b21a8; }
+.badge-us-type.other { background-color: #f1f5f9; color: #475569; }

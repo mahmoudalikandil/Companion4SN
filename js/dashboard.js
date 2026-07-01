@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.BulkBuilderManager) window.BulkBuilderManager.init();
     if (window.StatsManager) window.StatsManager.init();
     if (window.TransactionManager) window.TransactionManager.init();
+    if (window.LldGenerator) window.LldGenerator.init();
+    if (window.IntegrationStudioManager) window.IntegrationStudioManager.init();
 
     // --- CENTRALIZED BRIDGE CONNECTION ---
     if (btnConnect) {
@@ -110,6 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (panelId === 'panel-cancel-tx' && window.TransactionManager && window.activeInstanceData) {
             window.TransactionManager.loadActiveTransactions();
+        }
+        if (panelId === 'panel-lld' && window.LldGenerator && window.activeInstanceData) {
+            window.LldGenerator.loadLiveUpdateSets();
         }
         
         // Stop stream if they navigate away from the logs tab to save bandwidth
