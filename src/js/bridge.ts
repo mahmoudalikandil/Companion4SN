@@ -15,7 +15,7 @@ export const SNOW_Bridge = {
                 func: this._extractSnowData
             });
 
-            const result = injectionResults[0].result;
+            const result = injectionResults[0].result as any;
 
             if (!result || !result.token) {
                 throw new Error("Could not locate g_ck token. Ensure you are logged in.");

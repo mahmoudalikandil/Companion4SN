@@ -6,6 +6,9 @@ export interface ActiveInstanceData {
   catItemSysId: string | null;
   catItemName: string | null;
   catItemTable: string | null;
+  instanceName?: string;
+  username?: string;
+  user?: string;
 }
 
 declare global {
