@@ -92,7 +92,7 @@ export const CatalogCloner = {
                         
                         if (newSysId && window.activeInstanceData) {
                             const newUrl = `${window.activeInstanceData.url}/${table}.do?sys_id=${newSysId}`;
-                            clonerOutput.innerHTML += `\n\n<a href="${newUrl}" target="_blank" style="color: #4fc3f7; text-decoration: underline; font-weight: bold;">Open Cloned Item Form in Browser</a>`;
+                            clonerOutput.innerHTML += `\n\n<a href="${newUrl}" target="_blank" style="color: #16a34a; text-decoration: underline; font-weight: bold;">Open Cloned Item Form in Browser</a>`;
                         }
                     } else if (output.includes(">>>CLONE_ERROR<<<")) {
                         clonerOutput.textContent += `\n[ERROR] Cloning process encountered errors on the server.`;

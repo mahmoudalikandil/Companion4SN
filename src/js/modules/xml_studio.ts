@@ -70,7 +70,7 @@ export const XmlStudio = {
         showXmlStatus: function (message, isError = false) {
             const xmlStatus = document.getElementById('xmlStatus');
             if (!xmlStatus) return;
-            xmlStatus.style.color = isError ? "#c62828" : "#2e7d32";
+            xmlStatus.style.color = isError ? "#4b5563" : "#16a34a";
             xmlStatus.textContent = message;
             setTimeout(() => xmlStatus.textContent = "", 3000);
         },

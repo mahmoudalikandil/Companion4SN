@@ -26,10 +26,10 @@ export const FlowTracker = {
                     sysId: sysId
                 }, (response) => {
                     if (chrome.runtime.lastError) {
-                        flowTrackerStatus.style.color = "#c62828";
+                        flowTrackerStatus.style.color = "#4b5563";
                         flowTrackerStatus.textContent = "Error communicating with background worker.";
                     } else {
-                        flowTrackerStatus.style.color = "#1b5c53";
+                        flowTrackerStatus.style.color = "#16a34a";
                         flowTrackerStatus.textContent = "Tracking started! You can safely close this popup.";
                         btnTrackFlow.disabled = true;
                         btnTrackFlow.textContent = "Tracking...";

@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     flowSysIdInput.value = window.activeInstanceData.flowSysId;
                     if (btnTrackFlow) btnTrackFlow.disabled = false;
                     if (flowTrackerStatus) {
-                        flowTrackerStatus.style.color = "#2e7d32";
+                        flowTrackerStatus.style.color = "#16a34a";
                         flowTrackerStatus.textContent = "Flow Execution Context auto-detected!";
                     }
                 }

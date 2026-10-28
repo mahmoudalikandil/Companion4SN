@@ -502,7 +502,7 @@ export const IntegrationStudioManager = {
             resBox.style.display = 'flex';
             resBox.classList.remove('hidden');
             badge.className = 'badge';
-            badge.style.backgroundColor = '#38bdf8';
+            badge.style.backgroundColor = '#6b7280';
             badge.textContent = "WAITING";
             bodyOut.textContent = "Sending request...";
             headOut.textContent = "";
@@ -535,7 +535,7 @@ export const IntegrationStudioManager = {
 
                     bodyOut.textContent = formattedBody;
                     badge.textContent = `${response.status} ${response.statusText} (${elapsed}ms)`;
-                    badge.style.backgroundColor = response.ok ? '#4ade80' : '#f87171';
+                    badge.style.backgroundColor = response.ok ? '#16a34a' : '#4b5563';
 
                     let headersStr = '';
                     response.headers.forEach((v, k) => {
@@ -545,14 +545,14 @@ export const IntegrationStudioManager = {
                 } catch (err: any) {
                     bodyOut.textContent = `[CONNECTION ERROR] Request failed: ${err.message}\n\nNote: If this is a cross-origin call, it might have been blocked by CORS policy. Try using 'ServiceNow Proxy (Server)' execution mode to route through the connected ServiceNow instance instead.`;
                     badge.textContent = "FAILED";
-                    badge.style.backgroundColor = '#f87171';
+                    badge.style.backgroundColor = '#4b5563';
                 }
             } else {
                 // Server-side ServiceNow Proxy request via bridge
                 if (!window.activeInstanceData) {
                     bodyOut.textContent = "Error: Please initialize Bridge connection first.";
                     badge.textContent = "BRIDGE ERROR";
-                    badge.style.backgroundColor = '#f87171';
+                    badge.style.backgroundColor = '#4b5563';
                     return;
                 }
 
@@ -625,18 +625,18 @@ export const IntegrationStudioManager = {
                         bodyOut.textContent = formattedBody;
                         headOut.textContent = headers || "No headers returned.";
                         badge.textContent = `Status: ${status} (${elapsed})`;
-                        badge.style.backgroundColor = (status.startsWith('2')) ? '#4ade80' : '#f87171';
+                        badge.style.backgroundColor = (status.startsWith('2')) ? '#16a34a' : '#4b5563';
                     } else {
                         const errorIdx = responseText.indexOf('[ERROR]');
                         const errorMsg = errorIdx !== -1 ? responseText.substring(errorIdx).split('\n')[0] : "Check system logs.";
                         bodyOut.textContent = `REST Call Failed inside ServiceNow:\n${errorMsg}\n\nFull Server Output:\n${responseText}`;
                         badge.textContent = "SERVER FAIL";
-                        badge.style.backgroundColor = '#f87171';
+                        badge.style.backgroundColor = '#4b5563';
                     }
                 } catch (err: any) {
                     bodyOut.textContent = `Failed to connect/execute: ${err.message}`;
                     badge.textContent = "BRIDGE ERROR";
-                    badge.style.backgroundColor = '#f87171';
+                    badge.style.backgroundColor = '#4b5563';
                 }
             }
         },

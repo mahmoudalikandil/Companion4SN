@@ -82,7 +82,7 @@ export const UpdateSetManager = {
                         await SNOW_API.setUpdateSetAndScope(scopeId, updateSetId);
                         
                         if (updateSetStatus) {
-                            updateSetStatus.style.color = "#2e7d32";
+                            updateSetStatus.style.color = "#16a34a";
                             updateSetStatus.textContent = "Success! Refreshing page...";
                         }
 
@@ -94,7 +94,7 @@ export const UpdateSetManager = {
 
                     } catch (error: any) {
                         if (updateSetStatus) {
-                            updateSetStatus.style.color = "#c62828";
+                            updateSetStatus.style.color = "#4b5563";
                             updateSetStatus.textContent = "Error: " + error.message;
                         }
                         btnApplyUpdateSet.textContent = "Apply Changes";

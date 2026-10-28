@@ -20,14 +20,14 @@ export const SchemaExporter = {
 
                         if (activeData && activeData.table) {
                             schemaTableInput.value = activeData.table;
-                            schemaStatus.style.color = "#2e7d32";
+                            schemaStatus.style.color = "#16a34a";
                             schemaStatus.textContent = "Table detected automatically.";
                         } else {
-                            schemaStatus.style.color = "#c62828";
+                            schemaStatus.style.color = "#4b5563";
                             schemaStatus.textContent = "Could not detect table on active tab.";
                         }
                     } catch (err) {
-                        schemaStatus.style.color = "#c62828";
+                        schemaStatus.style.color = "#4b5563";
                         schemaStatus.textContent = "Auto-detect failed: " + err.message;
                     } finally {
                         btnDetectTable.textContent = "Auto-Detect";
@@ -69,7 +69,7 @@ export const SchemaExporter = {
                 const records = await SNOW_API.exportDictionary(table);
                 
                 if (!records || records.length === 0) {
-                    schemaStatus.style.color = "#c62828";
+                    schemaStatus.style.color = "#4b5563";
                     schemaStatus.textContent = `No dictionary records found for table: ${table}`;
                 } else {
                     if (format === 'json') {
@@ -83,11 +83,11 @@ export const SchemaExporter = {
                         });
                         this.triggerFileDownload(csv, `${table}_schema.csv`, "text/csv");
                     }
-                    schemaStatus.style.color = "#2e7d32";
+                    schemaStatus.style.color = "#16a34a";
                     schemaStatus.textContent = `Success! Exported ${records.length} fields.`;
                 }
             } catch (error: any) {
-                schemaStatus.style.color = "#c62828";
+                schemaStatus.style.color = "#4b5563";
                 schemaStatus.textContent = "Error: " + error.message;
             }
 

@@ -122,8 +122,8 @@ export const RealTimeLogViewer = {
                 if (btnStreamLogs) {
                     btnStreamLogs.textContent = "Stop Stream";
                     btnStreamLogs.className = "secondary-btn";
-                    btnStreamLogs.style.borderColor = "#cb1214";
-                    btnStreamLogs.style.color = "#cb1214";
+                    btnStreamLogs.style.borderColor = "#374151";
+                    btnStreamLogs.style.color = "#111827";
                 }
                 
                 this.appendLog('', '', 'Initiating stream connection...', '', true);
