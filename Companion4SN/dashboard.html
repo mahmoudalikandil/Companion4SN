@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNOW Companion</title>
+  <script type="module" crossorigin src="/assets/dashboard.html-CWSJ5kVn.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/dashboard-CDBAHeK1.css">
+</head>
+
+<body>
+
+    <header class="app-header">
+        <h1>ServiceNow Companion</h1>
+        <div class="status-indicator error" id="connStatus">Disconnected</div>
+    </header>
+
+    <main class="workspace">
+        <aside class="control-panel" id="sidebar">
+            <div class="instance-info">
+                <h3>Active Instance</h3>
+                <p id="instanceUrl">Awaiting connection...</p>
+                <div class="token-status" id="tokenStatus">
+                    <span class="dot"></span> No Token Found
+                </div>
+                <button id="btnConnect" class="primary-btn" style="margin-top: 10px;">Initialize Bridge</button>
+            </div>
+
+            <div class="tool-nav hidden" id="toolNav">
+                <h3>Developer Tools</h3>
+                <ul class="nav-list">
+                    <li data-target="panel-bulk" class="active">Bulk Item Builder</li>
+                    <li data-target="panel-cloner">Catalog Item Cloner</li>
+                    <li data-target="panel-lld">LLD Generator</li>
+                    <li data-target="panel-acl">ACL & Role Analyzer</li>
+                    <li data-target="panel-cancel-tx">Cancel Transactions</li>
+                    <li data-target="panel-logs">Real-Time Logs</li>
+                    <li data-target="panel-stats">Instance Stats</li>
+                    <li data-target="panel-integration">Integration Studio</li>
+                    <li data-target="panel-impersonate">Rapid Impersonator</li>
+                    <li data-target="panel-bgscript">Background Script</li>
+                    <li data-target="panel-updateset">Update Sets</li>
+                    <li data-target="panel-schema">Schema Exporter</li>
+                    <li data-target="panel-flow">Background Flow Tracker</li>
+                    <li data-target="panel-xml">XML Payload Studio</li>
+                </ul>
+            </div>
+        </aside>
+
+        <section class="editor-area">
+
+            <div class="tool-panel active" id="panel-welcome">
+                <div class="placeholder-message" id="mainDisplay">
+                    <h3>Live Bridge Status</h3>
+                    <p>Click "Initialize Bridge" to securely connect to your active ServiceNow tab.</p>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-bulk">
+                <div class="panel-header">
+                    <h2>Bulk Item Builder</h2>
+                    <span class="badge">Excel Import</span>
+                </div>
+
+                <div class="input-group full-width">
+                    <label style="font-weight: 600; font-size: 12px; color: #425051;">Include Optional Related Lists in Template:</label>
+                    <div class="checkbox-grid mt-5" style="width: 100%;">
+                        <label><input type="checkbox" id="chkBulkVariables" checked> Variables</label>
+                        <label><input type="checkbox" id="chkBulkVariableSets" checked> Variable Sets</label>
+                        <label><input type="checkbox" id="chkBulkUiPolicies" checked> UI Policies & Actions</label>
+                    </div>
+                </div>
+
+                <button id="btnDownloadBulkTemplate" class="secondary-btn mt-10" style="width: 100%; height: 32px; font-size: 12px; line-height: 14px;">Download Excel Template</button>
+
+                <div class="dropzone mt-15" id="bulkDropzone">
+                    <div class="dropzone-inner">
+                        <span class="dropzone-icon">📁</span>
+                        <p class="dropzone-text" id="bulkDropzoneText">Drag & drop completed template Excel sheet, or click to upload</p>
+                        <input type="file" id="bulkFileInput" accept=".xlsx" class="hidden">
+                    </div>
+                </div>
+
+                <div id="bulkErrorArea" class="hidden mt-15" style="display: flex; flex-direction: column; max-height: 160px; min-height: 0; overflow: hidden; border: 1px solid #e5e7eb; border-radius: 4px; background-color: #f9fafb;">
+                    <div style="background-color: #f3f4f6; color: #111827; font-weight: bold; font-size: 11px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                        <span>Validation Errors Detected</span>
+                        <span id="bulkErrorCount" class="crud-badge deny">0</span>
+                    </div>
+                    <div style="overflow-y: auto; flex: 1; min-height: 0;">
+                        <table id="bulkErrorTable" style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+                            <thead style="background-color: #e5e7eb; color: #374151; border-bottom: 1px solid #d1d5db; position: sticky; top: 0; z-index: 5;">
+                                <tr>
+                                    <th style="padding: 4px 8px;">Sheet</th>
+                                    <th style="padding: 4px 8px; width: 40px;">Row</th>
+                                    <th style="padding: 4px 8px; width: 85px;">Column</th>
+                                    <th style="padding: 4px 8px;">Error Details</th>
+                                    <th style="padding: 4px 8px; width: 120px;">Correction Grid</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulkErrorBody" style="color: #374151;"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="results-section hidden" id="bulkResultsBox" style="margin-top: 15px;">
+                    <h3>Execution Console Output</h3>
+                    <pre id="bulkOutput" class="console-output"></pre>
+                </div>
+
+                <div class="mt-15" style="display: flex; gap: 10px; flex-shrink: 0;">
+                    <button id="btnRunBulkDryRun" class="primary-btn" style="flex: 1;" disabled>Run Dry Run</button>
+                    <button id="btnCommitBulk" class="primary-btn success" style="flex: 1; background-color: #16a34a; border-color: #16a34a;" disabled>Commit to ServiceNow</button>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-impersonate">
+                <div class="panel-header">
+                    <h2>Rapid Impersonator</h2>
+                    <span class="badge">Live API</span>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="impersonateSearch"
+                        placeholder="Search user by name or email (Press Enter)...">
+                    <button id="btnSearchUser" class="secondary-btn">Search</button>
+                </div>
+                <ul id="userSearchResults" class="search-results hidden"></ul>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-bgscript">
+                <div class="panel-header">
+                    <h2>Background Script</h2>
+                    <div class="input-group">
+                        <select id="snippetSelector" class="scope-select">
+                            <option value="">-- Load Snippet --</option>
+                            <optgroup label="Database & Queries">
+                                <option value="incident">Get 5 Recent Incidents</option>
+                                <option value="user">Count Active Users</option>
+                                <option value="property">Check System Property</option>
+                                <option value="glide_aggregate">GlideAggregate Count</option>
+                                <option value="sys_id_search">Global sys_id Search</option>
+                                <option value="table_size">Estimated Table Size</option>
+                            </optgroup>
+                            <optgroup label="Diagnostics & Performance">
+                                <option value="transactions">List Active Transactions</option>
+                                <option value="slow_br">Find Slow Trackers</option>
+                                <option value="mid_servers">Down MID Servers</option>
+                                <option value="workflow_active">Active Workflow Contexts</option>
+                                <option value="attachment_size">Largest Attachments</option>
+                                <option value="portal_errors">Recent Portal Errors</option>
+                            </optgroup>
+                            <optgroup label="Administration & Cleanup">
+                                <option value="cache">Flush System Cache</option>
+                                <option value="events">Check Ready Events</option>
+                                <option value="empty_groups">Find Empty Groups</option>
+                                <option value="update_set_preview">Update Set Preview Errors</option>
+                                <option value="import_set_errors">Import Set Row Errors</option>
+                                <option value="user_login_history">Recent User Logins</option>
+                            </optgroup>
+                            <optgroup label="Advanced Scripting">
+                                <option value="impersonate">User Impersonation Mock</option>
+                                <option value="role_members">List Admins/Role Members</option>
+                                <option value="br_search">Search Scripts in Rules</option>
+                                <option value="script_include_check">Run Script Include Method</option>
+                                <option value="audit_log">Audit Trail for Record</option>
+                                <option value="trigger_job">Trigger Scheduled Job</option>
+                                <option value="rest_call">Outbound REST Message V2</option>
+                            </optgroup>
+                        </select>
+                        <select id="bgScope" class="scope-select">
+                            <option value="global">Global</option>
+                        </select>
+                    </div>
+                </div>
+                <textarea id="codeArea" spellcheck="false">var gr = new GlideRecord('incident');
+gr.setLimit(5);
+gr.query();
+while(gr.next()) {
+    gs.info(gr.number + ' - ' + gr.short_description);
+}</textarea>
+                <div class="action-buttons-row mt-10">
+                    <button id="btnRunScript" class="primary-btn">Execute Script</button>
+                    <button id="btnCancelScript" class="secondary-btn hidden" style="border-color: #4b5563; color: #111827;">Cancel Run</button>
+                </div>
+                <div class="results-section hidden" id="scriptResultsBox">
+                    <h3>Output Log</h3>
+                    <pre id="scriptOutput" class="console-output"></pre>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-updateset">
+                <div class="panel-header">
+                    <h2>Scope & Update Set</h2>
+                </div>
+
+                <div class="input-group full-width mt-10">
+                    <label>Application Scope</label>
+                    <input type="text" id="scopeSearch" placeholder="Filter scopes by name..." class="form-control mb-5"
+                        disabled>
+                    <select id="scopeSelect" class="form-control" disabled>
+                        <option>Loading scopes...</option>
+                    </select>
+                </div>
+
+                <div class="input-group full-width mt-15">
+                    <label>Active Update Set</label>
+                    <input type="text" id="updateSetSearch" placeholder="Search update sets on server..."
+                        class="form-control mb-5" disabled>
+                    <select id="updateSetSelect" class="form-control" disabled>
+                        <option>Awaiting scope selection...</option>
+                    </select>
+                </div>
+
+                <button id="btnApplyUpdateSet" class="primary-btn mt-15" disabled>Apply Changes</button>
+                <div id="updateSetStatus" style="margin-top: 10px; font-size: 13px; font-weight: bold;"></div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-lld">
+                <div class="panel-header">
+                    <h2>LLD Document Generator</h2>
+                    <span class="badge">Automation</span>
+                </div>
+
+                <div class="lld-tabs-container">
+                    <div class="tab-strip" id="lldSourceTabs">
+                        <button class="tab-btn active" data-tab="lld-tab-upload">Local XML Upload</button>
+                        <button class="tab-btn" data-tab="lld-tab-live" id="lldLiveTabHeader">Live Instance Fetch</button>
+                    </div>
+                </div>
+
+                <div class="lld-tab-content active" id="lld-tab-upload">
+                    <div class="dropzone mt-15" id="lldDropzone">
+                        <div class="dropzone-inner">
+                            <span class="dropzone-icon">📄</span>
+                            <p class="dropzone-text" id="lldDropzoneText">Drag & drop Update Set XML file here, or click to upload</p>
+                            <input type="file" id="lldFileInput" accept=".xml" class="hidden">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lld-tab-content hidden" id="lld-tab-live">
+                    <div class="input-group full-width mt-10">
+                        <label style="font-weight: 600; font-size: 12px; color: #425051;">Select Connection Type:</label>
+                        <div class="checkbox-grid mt-5" style="width: 100%; display: flex; gap: 15px;">
+                            <label><input type="radio" name="lldLiveType" value="local" checked> Local Update Sets (sys_update_set)</label>
+                            <label><input type="radio" name="lldLiveType" value="remote"> Remote Update Sets (sys_remote_update_set)</label>
+                        </div>
+                    </div>
+
+                    <div class="input-group full-width mt-15">
+                        <label>Select Update Set from Server</label>
+                        <input type="text" id="lldLiveSearch" placeholder="Search update sets on instance..." class="form-control mb-5">
+                        <select id="lldLiveSelect" class="form-control">
+                            <option value="">-- Connect Live & Select Update Set --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-15" style="display: flex; gap: 10px; flex-shrink: 0;">
+                    <button id="btnGenerateLLD" class="primary-btn" style="flex: 1;">Generate LLD Preview</button>
+                    <button id="btnGenerateOverallLLD" class="primary-btn" style="flex: 1; background-color: #1f2937; border-color: #1f2937;">Generate Overall LLD</button>
+                    <button id="btnExportLLD" class="primary-btn success" style="flex: 1; background-color: #16a34a; border-color: #16a34a;" disabled>Download Word LLD</button>
+                </div>
+
+                <div id="lldProgressBarContainer" class="hidden mt-10" style="width: 100%; height: 16px; background-color: #e5e7eb; border-radius: 8px; overflow: hidden; position: relative; flex-shrink: 0;">
+                    <div id="lldProgressFill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #16a34a, #86efac); transition: width 0.15s;"></div>
+                    <span id="lldProgressText" style="position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: bold; color: #111827; top: 1px; left: 0; line-height: 14px;">0%</span>
+                </div>
+
+                <div id="lldConsoleLog" class="terminal-window mt-10 hidden" style="height: 120px; overflow-y: auto; flex-shrink: 0; background-color: #121214; color: #86efac; border: 1px solid #27272a; padding: 10px; font-family: monospace; font-size: 10px; border-radius: 6px;">
+                    <div class="log-entry system" style="color: #9ca3af;">[System] Console initialized. Click "Generate Overall LLD" to tail live instance scanning...</div>
+                </div>
+
+                <div id="lldStatus" class="mt-10" style="font-size: 12px; font-weight: bold;"></div>
+
+                <div id="lldPreviewBox" class="hidden results-section" style="margin-top: 15px; flex: 1; min-height: 0;">
+                    <h3>Generated LLD Document Preview</h3>
+                    <div class="lld-tabs-container mt-5">
+                        <div class="tab-strip preview-tabs" id="lldPreviewTabs">
+                            <button class="tab-btn active" data-preview-tab="lld-prev-summary">Summary</button>
+                            <button class="tab-btn" data-preview-tab="lld-prev-catalog">Catalog & Forms</button>
+                            <button class="tab-btn" data-preview-tab="lld-prev-data">Data Model</button>
+                            <button class="tab-btn" data-preview-tab="lld-prev-logic">Business Logic</button>
+                            <button class="tab-btn" data-preview-tab="lld-prev-flows">Flows & SLAs</button>
+                            <button class="tab-btn" data-preview-tab="lld-prev-other">Other</button>
+                        </div>
+                    </div>
+
+                    <div class="lld-preview-content-box" style="flex: 1; overflow-y: auto; background: white; border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 15px; margin-top: 10px; min-height: 250px;">
+                        
+                        <!-- Summary Tab -->
+                        <div class="lld-preview-tab-pane active" id="lld-prev-summary">
+                            <div id="lldSummaryArea"></div>
+                        </div>
+
+                        <!-- Catalog Tab -->
+                        <div class="lld-preview-tab-pane hidden" id="lld-prev-catalog">
+                            <div id="lldCatalogArea"></div>
+                        </div>
+
+                        <!-- Data Model Tab -->
+                        <div class="lld-preview-tab-pane hidden" id="lld-prev-data">
+                            <div id="lldDataArea"></div>
+                        </div>
+
+                        <!-- Business Logic Tab -->
+                        <div class="lld-preview-tab-pane hidden" id="lld-prev-logic">
+                            <div id="lldLogicArea"></div>
+                        </div>
+
+                        <!-- Flows & SLAs Tab -->
+                        <div class="lld-preview-tab-pane hidden" id="lld-prev-flows">
+                            <div id="lldFlowsArea"></div>
+                        </div>
+
+                        <!-- Other Tab -->
+                        <div class="lld-preview-tab-pane hidden" id="lld-prev-other">
+                            <div id="lldOtherArea"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-integration">
+                <div class="panel-header">
+                    <h2>Integration Studio</h2>
+                    <span class="badge">REST & HTTP</span>
+                </div>
+
+                <div class="lld-tabs-container">
+                    <div class="tab-strip" id="intMainTabs">
+                        <button class="tab-btn active" data-int-tab="int-tab-creator">REST Message Creator</button>
+                        <button class="tab-btn" data-int-tab="int-tab-tester" id="intTesterTabHeader">REST Method Tester</button>
+                    </div>
+                </div>
+
+                <!-- Tab 1: REST Creator -->
+                <div class="int-tab-content active" id="int-tab-creator" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                    <div style="display: flex; gap: 15px;">
+                        <div class="input-group full-width" style="flex: 1;">
+                            <label>REST Message Name</label>
+                            <input type="text" id="intMsgName" placeholder="e.g., u_slack_api" class="form-control">
+                        </div>
+                        <div class="input-group full-width" style="flex: 2;">
+                            <label>Base Endpoint URL</label>
+                            <input type="text" id="intMsgEndpoint" placeholder="e.g., https://hooks.slack.com/services" class="form-control">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 15px; align-items: flex-end;">
+                        <div class="input-group full-width" style="flex: 1;">
+                            <label>Authentication Type</label>
+                            <select id="intMsgAuth" class="form-control">
+                                <option value="none">None</option>
+                                <option value="basic">Basic (Username/Password)</option>
+                            </select>
+                        </div>
+                        <div class="input-group full-width hidden" id="intBasicAuthGroup" style="flex: 2; display: none; gap: 10px;">
+                            <div style="flex: 1;">
+                                <label>Username</label>
+                                <input type="text" id="intAuthUser" placeholder="Username" class="form-control">
+                            </div>
+                            <div style="flex: 1;">
+                                <label>Password</label>
+                                <input type="password" id="intAuthPassword" placeholder="Password" class="form-control" style="width: 100%; border: 1px solid #cbd5e1; border-radius: var(--p4m-border-radius); padding: 8px 12px; font-size: 12px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Headers Section -->
+                    <div style="border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 12px; background-color: #fafafa;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="margin: 0; font-size: 12px; color: var(--p4m-text-dark);">HTTP Default Headers</h4>
+                            <button id="btnIntAddHeader" class="secondary-btn" style="padding: 2px 8px; font-size: 11px;">Add Header</button>
+                        </div>
+                        <table class="lld-preview-table" style="margin-top: 5px;">
+                            <thead>
+                                <tr>
+                                    <th>Header Name</th>
+                                    <th>Header Value</th>
+                                    <th style="width: 60px; text-align: center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="intHeadersBody">
+                                <tr>
+                                    <td><input type="text" placeholder="Content-Type" value="application/json" class="form-control header-name-input"></td>
+                                    <td><input type="text" placeholder="application/json" value="application/json" class="form-control header-val-input"></td>
+                                    <td style="text-align: center;"><button class="secondary-btn btn-delete-header" style="color: red; padding: 2px 6px; border:none; background:none; cursor:pointer;">✕</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Methods Section -->
+                    <div style="border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 12px; background-color: #fafafa;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="margin: 0; font-size: 12px; color: var(--p4m-text-dark);">HTTP Methods (Functions)</h4>
+                            <button id="btnIntAddMethod" class="secondary-btn" style="padding: 2px 8px; font-size: 11px;">Add Method</button>
+                        </div>
+                        <div id="intMethodsList" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Method Card (Default GET) -->
+                            <div class="int-method-card" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; background: white;">
+                                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+                                    <select class="form-control method-verb-select" style="width: 90px; flex-shrink: 0;">
+                                        <option value="get" selected>GET</option>
+                                        <option value="post">POST</option>
+                                        <option value="put">PUT</option>
+                                        <option value="delete">DELETE</option>
+                                    </select>
+                                    <input type="text" placeholder="Method Name (e.g., get_details)" value="get_details" class="form-control method-name-input" style="flex: 2;">
+                                    <input type="text" placeholder="Endpoint Suffix (e.g., /users/${userId})" value="" class="form-control method-suffix-input" style="flex: 3;">
+                                    <button class="secondary-btn btn-delete-method" style="color: red; padding: 2px 8px; border:none; background:none; cursor:pointer;">✕</button>
+                                </div>
+                                <textarea class="form-control method-body-textarea hidden" placeholder="Request Body payload (JSON)..." rows="2" style="font-family: monospace; font-size: 11px; margin-top: 5px; display: none;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Creator Actions -->
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <button id="btnIntDeploy" class="primary-btn" style="flex: 1; background-color: #1f2937; border-color: #1f2937;">Deploy Live to ServiceNow</button>
+                        <button id="btnIntDownloadXml" class="primary-btn success" style="flex: 1; background-color: #16a34a; border-color: #16a34a;">Download XML Update Set</button>
+                    </div>
+                    <div id="intDeployStatus" style="font-size: 11px; font-weight: bold; text-align: center; color: var(--p4m-primary-color);"></div>
+                </div>
+
+                <!-- Tab 2: REST Tester -->
+                <div class="int-tab-content hidden" id="int-tab-tester" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px;">
+                    <div style="display: flex; gap: 15px; align-items: flex-end;">
+                        <div class="input-group full-width" style="flex: 2;">
+                            <label>Select Configured Method to Test</label>
+                            <select id="intTestSelectMethod" class="form-control">
+                                <option value="">-- Choose a Method --</option>
+                            </select>
+                        </div>
+                        <div class="input-group full-width" style="flex: 1;">
+                            <label>Execution Mode</label>
+                            <select id="intTestExecMode" class="form-control">
+                                <option value="proxy" selected>ServiceNow Proxy (Server)</option>
+                                <option value="local">Local Client (Browser)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Parameter Replacement Grid -->
+                    <div id="intTestParamsContainer" class="hidden" style="display: none; border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 12px; background-color: #fafafa;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 12px; color: var(--p4m-text-dark);">Path & Body Variable Substitutions</h4>
+                        <div id="intTestParamsGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <!-- Injected dynamically based on ${variable} -->
+                        </div>
+                    </div>
+
+                    <button id="btnIntRunTest" class="primary-btn" style="width: 100%;">Execute API Call</button>
+
+                    <!-- Tester Outputs -->
+                    <div id="intTestResultsBox" class="hidden results-section" style="display: none; margin-top: 10px; flex: 1; min-height: 0; flex-direction: column;">
+                        <h3 style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                            <span>Test Output Response</span>
+                            <span id="intTestStatusBadge" class="badge" style="background-color: #e5e7eb; color: #111827;">PENDING</span>
+                        </h3>
+                        
+                        <div class="lld-tabs-container">
+                            <div class="tab-strip" id="intTestResultTabs">
+                                <button class="tab-btn active" data-test-tab="int-prev-body">Response Body</button>
+                                <button class="tab-btn" data-test-tab="int-prev-headers">Response Headers</button>
+                                <button class="tab-btn" data-test-tab="int-prev-snippet">ServiceNow Script Snippet</button>
+                            </div>
+                        </div>
+
+                        <div style="flex: 1; overflow-y: auto; background: white; border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 15px; margin-top: 10px; min-height: 180px;">
+                            <!-- Body Tab -->
+                            <div class="int-test-tab-pane active" id="int-prev-body">
+                                <pre id="intTestBodyOutput" style="font-family: monospace; font-size: 11px; white-space: pre-wrap; margin: 0; color: #111827;"></pre>
+                            </div>
+                            
+                            <!-- Headers Tab -->
+                            <div class="int-test-tab-pane hidden" id="int-prev-headers" style="display: none;">
+                                <pre id="intTestHeadersOutput" style="font-family: monospace; font-size: 11px; white-space: pre-wrap; margin: 0; color: #4b5563;"></pre>
+                            </div>
+
+                            <!-- Snippet Tab -->
+                            <div class="int-test-tab-pane hidden" id="int-prev-snippet" style="display: none;">
+                                <p style="font-size: 11px; color: #6b7280; margin-bottom: 8px;">Copy this ready-to-run JavaScript snippet to use inside your ServiceNow Script Includes, Business Rules, or background scripts:</p>
+                                <pre id="intTestSnippetOutput" style="font-family: monospace; font-size: 11px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px; white-space: pre; overflow-x: auto; color: #111827; cursor: pointer;" title="Click to copy to clipboard"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="tool-panel hidden" id="panel-schema">
+                <div class="panel-header">
+                    <h2>Dictionary Exporter</h2>
+                </div>
+
+                <div class="input-group mt-10">
+                    <input type="text" id="schemaTableInput" placeholder="Table name (e.g., incident)">
+                    <button id="btnDetectTable" class="secondary-btn">Auto-Detect</button>
+                </div>
+
+                <p style="font-size: 11px; color: #657575; margin-top: 5px;">
+                    Downloads column names, types, max lengths, and reference targets.
+                </p>
+
+                <div class="input-group mt-15">
+                    <button id="btnExportCSV" class="primary-btn">Download CSV</button>
+                    <button id="btnExportJSON" class="primary-btn">Download JSON</button>
+                </div>
+
+                <div id="schemaStatus" style="margin-top: 15px; font-size: 13px; font-weight: bold;"></div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-flow">
+                <div class="panel-header">
+                    <h2>Background Flow Tracker</h2>
+                    <span class="badge">Service Worker</span>
+                </div>
+
+                <div class="input-group full-width mt-10">
+                    <label>Flow Context Sys ID</label>
+                    <input type="text" id="flowSysIdInput"
+                        placeholder="Navigate to a Flow Execution page to auto-detect...">
+                </div>
+
+                <p style="font-size: 11px; color: #657575; margin-top: 10px; line-height: 1.4;">
+                    Send this execution to Chrome's background worker. You can close this extension and change tabs.
+                    Chrome will send you a desktop push notification the exact moment the Flow finishes or errors out.
+                </p>
+
+                <button id="btnTrackFlow" class="primary-btn mt-15" disabled>Track in Background</button>
+                <div id="flowTrackerStatus" style="margin-top: 15px; font-size: 13px; font-weight: bold;"></div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-logs">
+                <div class="panel-header">
+                    <h2>Live Terminal</h2>
+                    <span class="badge">Polling Engine</span>
+                </div>
+                
+                <div class="input-group full-width mt-10">
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                        <button id="btnStreamLogs" class="primary-btn" style="flex: 1;">Start Stream</button>
+                        <button id="btnClearLogs" class="secondary-btn" style="width: 80px;">Clear</button>
+                    </div>
+                    <input type="text" id="logFilterInput" placeholder="Filter stream (e.g., your script name or 'gs.info')..." class="mt-10">
+                </div>
+
+                <div class="terminal-window mt-15" id="logTerminal">
+                    <div class="log-entry system">[System] Terminal ready. Click 'Start Stream' to tail syslog...</div>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-xml">
+                <div class="panel-header">
+                    <h2>XML Payload Studio</h2>
+                    <span class="badge">Offline Utility</span>
+                </div>
+                
+                <div class="input-group mt-10" style="flex-wrap: wrap;">
+                    <button id="btnFormatXML" class="secondary-btn">Format / Beautify</button>
+                    <button id="btnStripSysMeta" class="secondary-btn">Strip SNOW Meta</button>
+                    <button id="btnCopyXML" class="secondary-btn">Copy to Clipboard</button>
+                    <button id="btnDownloadXML" class="primary-btn" style="flex: 1;">Download .xml</button>
+                </div>
+
+                <textarea id="xmlEditorArea" class="mt-15" spellcheck="false" placeholder="Paste your ServiceNow XML payload here..."></textarea>
+                
+                <div id="xmlStatus" style="margin-top: 10px; font-size: 13px; font-weight: bold;"></div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-cloner">
+                <div class="panel-header">
+                    <h2>Catalog Item Cloner</h2>
+                    <span class="badge">Server Script</span>
+                </div>
+
+                <div class="input-group full-width mt-10">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label>Source Catalog Item</label>
+                        <button id="btnDetectClonerSource" class="secondary-btn" style="padding: 2px 8px; font-size: 11px;">Auto-Detect</button>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 5px;">
+                        <input type="text" id="clonerSourceTable" placeholder="Table (e.g., sc_cat_item)" style="flex: 1;" readonly>
+                        <input type="text" id="clonerSourceSysId" placeholder="Sys ID" style="flex: 2;" readonly>
+                    </div>
+                    <input type="text" id="clonerSourceName" placeholder="Detected Item Name" class="mt-5" readonly>
+                </div>
+
+                <div class="input-group full-width mt-15">
+                    <label>New Catalog Item Name</label>
+                    <input type="text" id="clonerNewName" placeholder="Enter new catalog item name..." class="form-control">
+                </div>
+
+                <div class="input-group full-width mt-15">
+                    <label>Target Application Scope</label>
+                    <select id="clonerScopeSelect" class="form-control">
+                        <option value="global">Global</option>
+                    </select>
+                </div>
+
+                <div class="input-group full-width mt-15">
+                    <label>Related Lists to Clone</label>
+                    <div class="checkbox-grid mt-5">
+                        <label><input type="checkbox" id="chkClonerVariables" checked> Variables</label>
+                        <label><input type="checkbox" id="chkClonerVariableSets" checked> Variable Sets</label>
+                        <label><input type="checkbox" id="chkClonerUiPolicies" checked> UI Policies & Actions</label>
+                        <label><input type="checkbox" id="chkClonerClientScripts" checked> Client Scripts</label>
+                        <label><input type="checkbox" id="chkClonerUserCriteria" checked> User Criteria</label>
+                        <label><input type="checkbox" id="chkClonerCategories" checked> Catalogs & Categories</label>
+                        <label><input type="checkbox" id="chkClonerDataLookups" checked> Catalog Data Lookups</label>
+                        <label><input type="checkbox" id="chkClonerRelatedArticles"> Related Articles</label>
+                        <label><input type="checkbox" id="chkClonerRelatedItems"> Related Items</label>
+                        <label><input type="checkbox" id="chkClonerTopics"> Assigned Topics</label>
+                    </div>
+                </div>
+
+                <button id="btnRunClone" class="primary-btn mt-15" style="width: 100%;">Execute Clone</button>
+                
+                <div class="results-section hidden" id="clonerResultsBox">
+                    <h3>Execution Console Output</h3>
+                    <pre id="clonerOutput" class="console-output"></pre>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-acl">
+                <div class="panel-header">
+                    <h2>ACL & Role Analyzer</h2>
+                    <span class="badge">Diagnostics</span>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="aclUserSearch" placeholder="Search user by name or email (Press Enter)..." style="flex: 1;">
+                    <button id="btnAclSearchUser" class="secondary-btn">Search</button>
+                </div>
+                <ul id="aclUserSearchResults" class="search-results hidden" style="margin-top: 5px;"></ul>
+
+                <div id="aclUserCard" class="instance-info hidden mt-10" style="background-color: #f0fdf4; border-color: #bbf7d0;">
+                    <h3 style="color: #166534; font-weight: bold;">Target User</h3>
+                    <p id="aclTargetUserName" style="margin: 0; font-size: 14px;">None Selected</p>
+                    <span id="aclTargetUserSysId" style="font-size: 11px; color: #4b5563;"></span>
+                </div>
+
+                <div id="aclDiagnosticsArea" class="hidden mt-15" style="display: flex; gap: 15px; flex: 1; overflow: hidden;">
+                    <!-- Left: Role Hierarchy Tree -->
+                    <div style="flex: 1; display: flex; flex-direction: column; background: white; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px; overflow-y: auto;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #4b5563; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Role Hierarchy</h4>
+                        <div id="aclRoleTree" class="role-tree-container"></div>
+                    </div>
+
+                    <!-- Right: Table CRUD Evaluator -->
+                    <div style="flex: 1; display: flex; flex-direction: column; background: white; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px; overflow-y: auto;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #4b5563; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Table Access (CRUD)</h4>
+                        
+                        <div id="aclTableGrid" style="display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto;"></div>
+
+                        <div class="mt-10" style="border-top: 1px solid #e5e7eb; padding-top: 10px; display: flex; gap: 6px; flex-shrink: 0;">
+                            <input type="text" id="aclCustomTableInput" placeholder="Add custom table (e.g. core_company)" style="font-size: 11px; padding: 4px 8px; height: 26px;">
+                            <button id="btnAclCheckCustomTable" class="primary-btn" style="width: auto; height: 26px; padding: 0 10px; font-size: 11px; line-height: 26px; margin: 0;">Add Table</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-section hidden" id="aclResultsBox">
+                    <h3>Execution Console Output</h3>
+                    <pre id="aclOutput" class="console-output"></pre>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-stats">
+                <div class="panel-header">
+                    <h2>Instance Stats (stats.do)</h2>
+                    <button id="btnReloadStats" class="secondary-btn">Reload Stats</button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stats-card full-width">
+                        <h4>ServiceNow Version</h4>
+                        <div id="statVersion" class="stats-value">Loading...</div>
+                        <div id="statBuildTag" class="stats-subtext">Fetching details...</div>
+                    </div>
+                    <div class="stats-card">
+                        <h4>Memory Allocation</h4>
+                        <div class="stats-value" id="statMemoryRatio">0 MB / 0 MB</div>
+                        <div class="stats-subtext" id="statMemoryPct">0% Used</div>
+                        <div class="progress-bar-container">
+                            <div class="progress-fill" id="statMemoryBar"></div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <h4>Servlet Diagnostics</h4>
+                        <div class="stats-value" id="statSessions">Sessions: --</div>
+                        <div class="stats-subtext" id="statTime">Processor Time: -- ms</div>
+                    </div>
+                    <div class="stats-card full-width">
+                        <h4>Database Pool Sizing</h4>
+                        <div class="stats-value" id="statDbPool">Active Connections: -- / Capacity: --</div>
+                        <div class="stats-subtext" id="statDbInfo">Fetching active DB pool status...</div>
+                    </div>
+                </div>
+                <div class="results-section">
+                    <h3>Raw stats.do Header Output</h3>
+                    <div class="raw-output-box" id="rawStatsOutput">Awaiting reload...</div>
+                </div>
+            </div>
+
+            <div class="tool-panel hidden" id="panel-cancel-tx">
+                <div class="panel-header">
+                    <h2>Cancel Transactions (cancel_my_transaction.do)</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btnRefreshTx" class="secondary-btn">Refresh Transactions</button>
+                        <button id="btnQuickCancelTx" class="primary-btn" style="width: auto;">Cancel Current Tab Thread</button>
+                    </div>
+                </div>
+                <p style="font-size: 11px; color: var(--p4m-text-muted); margin-bottom: 10px; line-height: 1.4;">
+                    Displays active user session threads queryable via <strong>v_transaction</strong>. Click <strong>Cancel Thread</strong> to terminate a specific locked transaction, or use the quick cancel action to end the current page's active execution thread.
+                </p>
+                <div class="tx-table-container">
+                    <table class="tx-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 150px;">Thread Name</th>
+                                <th style="width: 70px;">Age (sec)</th>
+                                <th>URL / Action</th>
+                                <th style="width: 80px; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--p4m-text-muted); padding: 20px;">
+                                    Click 'Refresh Transactions' to fetch active session records.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="txStatus" style="margin-top: 10px; font-size: 12px; font-weight: bold; color: var(--p4m-primary-color);"></div>
+            </div>
+
+        </section>
+    </main>
+
+</body>
+
+</html>

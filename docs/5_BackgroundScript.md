@@ -3,7 +3,7 @@
 ## 1. Executive Summary
 ServiceNow administrators routinely write server-side JavaScript scripts to test APIs, query records, or run batch jobs. Navigating to the native `/sys.scripts.do` page takes developers away from their active tabs and features a basic, non-retaining textarea interface.
 
-The **Background Script Runner** brings a server script editor directly into the *ServiceNow Live Companion* extension popup. It allows developers to load preconfigured snippets, choose scope environments, execute server scripts, and inspect console stdout outputs without switching screens.
+The **Background Script Runner** brings a server script editor directly into the *Companion4SN* extension popup. It allows developers to load preconfigured snippets, choose scope environments, execute server scripts, and inspect console stdout outputs without switching screens.
 
 ---
 

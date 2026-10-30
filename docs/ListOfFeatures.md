@@ -1,6 +1,6 @@
-# ServiceNow Live Companion - Feature Documentation Index
+# Companion4SN - Feature Documentation Index
 
-This index lists all developer tools and features built into the *ServiceNow Live Companion* extension. Each feature is detailed in its corresponding specification file, explaining its capabilities, technical designs, user interfaces, and API contracts.
+This index lists all developer tools and features built into the *Companion4SN* extension. Each feature is detailed in its corresponding specification file, explaining its capabilities, technical designs, user interfaces, and API contracts.
 
 ---
 

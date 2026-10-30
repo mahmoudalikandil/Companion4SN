@@ -1,12 +1,12 @@
-# Code Quality Audit Report: ServiceNow Live Companion
+# Code Quality Audit Report: Companion4SN
 
-This audit report evaluates the code quality, logical correctness, and security posture of the **ServiceNow Live Companion** Chrome Extension based on the active files in the workspace. It aims to explain how the application works under the hood and identify potential risk areas.
+This audit report evaluates the code quality, logical correctness, and security posture of the **Companion4SN** Chrome Extension based on the active files in the workspace. It aims to explain how the application works under the hood and identify potential risk areas.
 
 ---
 
 ## 1. Application Overview & How It Works
 
-**ServiceNow Live Companion** is a Chrome Extension designed to enhance the ServiceNow developer experience by interacting with the active ServiceNow tab.
+**Companion4SN** is a Chrome Extension designed to enhance the ServiceNow developer experience by interacting with the active ServiceNow tab.
 
 ### Data Flow & Architecture
 ```mermaid

@@ -3,7 +3,7 @@
 ## 1. Executive Summary
 Duplicating complex catalog items in ServiceNow is historically time-consuming. Performing an "Insert and Stay" on a `sc_cat_item` record only duplicates the core record, omitting all critical related lists such as variables, UI policies, and client scripts. Manually recreating or export-importing these records is error-prone and often leads to broken variables references and broken script execution.
 
-The **Catalog Item Cloner** provides a secure, transactional, server-side duplicate engine inside the *ServiceNow Live Companion* extension. It automatically extracts active catalog items from tab contexts, duplicates the core catalog item, clones all selected related lists, and updates internal variable reference sys_ids so that client scripts, UI policies, and data lookup relationships function immediately in the cloned item.
+The **Catalog Item Cloner** provides a secure, transactional, server-side duplicate engine inside the *Companion4SN* extension. It automatically extracts active catalog items from tab contexts, duplicates the core catalog item, clones all selected related lists, and updates internal variable reference sys_ids so that client scripts, UI policies, and data lookup relationships function immediately in the cloned item.
 
 ---
 

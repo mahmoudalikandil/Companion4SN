@@ -3,7 +3,7 @@
 ## 1. Executive Summary
 Testing roles and permissions in ServiceNow requires switching contexts between different users. The native impersonate function requires navigating through the concourse banner menus, typing in search bars, clicking select, and waiting for page reloads.
 
-The **Rapid Impersonator** is a streamlined utility inside the *ServiceNow Live Companion* extension that allows developers to search for any active user and immediately trigger impersonation in their active browser tab with a single click, reloading the ServiceNow page automatically.
+The **Rapid Impersonator** is a streamlined utility inside the *Companion4SN* extension that allows developers to search for any active user and immediately trigger impersonation in their active browser tab with a single click, reloading the ServiceNow page automatically.
 
 ---
 

@@ -270,22 +270,8 @@ if (gr.get('sys_id_of_scheduled_job')) {
         }
     },
 
-            if (btnCancelScript) {
-                btnCancelScript.addEventListener('click', () => {
-                    if (scriptAbortController) {
-                        scriptAbortController.abort();
-                    }
-                    try {
-                        SNOW_API.cancelCurrentTransaction();
-                    } catch (err) {
-                        console.error("Failed to cancel server transaction:", err);
-                    }
-                });
-            }
-        },
-
-        injectSafetyGuard: function (code) {
-            const guardHeader = `// Safety loop guard injected by ServiceNow Companion
+    injectSafetyGuard: function (code) {
+            const guardHeader = `// Safety loop guard injected by Companion4SN
 var __loop_counter = 0;
 var __check_loop = function() {
     __loop_counter++;

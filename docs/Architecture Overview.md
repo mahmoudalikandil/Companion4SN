@@ -1,5 +1,5 @@
 ================================================================================
-PROJECT: ServiceNow Live Companion (Chrome Extension)
+PROJECT: Companion4SN (Chrome Extension)
 PHASE: Phase 2 - The Quick Wins (Live API Interaction)
 ================================================================================
 

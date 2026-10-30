@@ -3,7 +3,7 @@
 ## 1. Executive Summary
 Troubleshooting access control issues (ACLs) in ServiceNow is a common pain point for developers. Traditional debugging requires manually impersonating the user, navigating to the form, triggering errors, and inspecting security debug logs. 
 
-The **User Roles & ACL Permission Analyzer** is a diagnostic tool integrated into the *ServiceNow Live Companion* extension. It allows developers to immediately trace a user's role inheritance hierarchy and run automated CRUD permission checks on core/custom tables—identifying exact missing roles—without ever changing their active session context.
+The **User Roles & ACL Permission Analyzer** is a diagnostic tool integrated into the *Companion4SN* extension. It allows developers to immediately trace a user's role inheritance hierarchy and run automated CRUD permission checks on core/custom tables—identifying exact missing roles—without ever changing their active session context.
 
 ---
 

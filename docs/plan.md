@@ -1,5 +1,5 @@
 - I am building a chrome extension that will getting the details of my Servicenow Current page similar almost to SNUtils and I will be adding the following features are my current features:
-ServiceNow Live Companion
+Companion4SN
 
 Developer Tools:
 Rapid Impersonator

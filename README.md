@@ -1,4 +1,4 @@
-# ServiceNow Live Companion
+# Companion4SN
 
 An advanced live-instance developer toolkit for ServiceNow, packaged as a modern Chrome Extension (Manifest V3) and built with Vite + TypeScript.
 
