@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ServiceNow Live Companion",
+  "name": "Companion4SN",
   "version": "2.0",
   "description": "Advanced live-instance developer toolkit.",
   "permissions": [
@@ -16,7 +16,7 @@
     "*://*.service-now.com/*"
   ],
   "action": {
-    "default_title": "Open SNOW Companion",
+    "default_title": "Open Companion4SN",
     "default_popup": "dashboard.html"
   },
   "background": {

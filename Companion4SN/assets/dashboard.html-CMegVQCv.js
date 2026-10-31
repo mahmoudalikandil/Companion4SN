@@ -1209,7 +1209,7 @@ It looks like you wrote "while(gr.next)" without parentheses. This will cause an
 
 You used ".query()" inside a while loop condition. This will result in an infinite loop because query() does not advance the record pointer. Please use "while(gr.next())" instead.`);return}const l=this.injectSafetyGuard(f);e.textContent="Executing...",e.disabled=!0,r&&r.classList.remove("hidden"),n.classList.add("hidden"),a.textContent="",c=new AbortController;try{const o=document.getElementById("bgScope")?document.getElementById("bgScope").value:"global",u=await ke.runBackgroundScript(l,o,c.signal);a.textContent=u,n.classList.remove("hidden")}catch(o){o.name==="AbortError"?a.textContent=`Execution Cancelled.
 
-Sent a thread abort command to the ServiceNow server to release the session thread.`:a.textContent=`Execution Error: ${o.message}`,n.classList.remove("hidden")}finally{e.textContent="Execute Script",e.disabled=!1,r&&r.classList.add("hidden"),c=null}}),r&&r.addEventListener("click",()=>{c&&c.abort();try{ke.cancelCurrentTransaction()}catch(f){console.error("Failed to cancel server transaction:",f)}})},injectSafetyGuard:function(e){const r=`// Safety loop guard injected by ServiceNow Companion
+Sent a thread abort command to the ServiceNow server to release the session thread.`:a.textContent=`Execution Error: ${o.message}`,n.classList.remove("hidden")}finally{e.textContent="Execute Script",e.disabled=!1,r&&r.classList.add("hidden"),c=null}}),r&&r.addEventListener("click",()=>{c&&c.abort();try{ke.cancelCurrentTransaction()}catch(f){console.error("Failed to cancel server transaction:",f)}})},injectSafetyGuard:function(e){const r=`// Safety loop guard injected by Companion4SN
 var __loop_counter = 0;
 var __check_loop = function() {
     __loop_counter++;

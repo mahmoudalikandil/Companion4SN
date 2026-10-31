@@ -22,29 +22,11 @@ export const BulkBuilderManager = {
             if (!btnDownloadBulkTemplate && !bulkDropzone && !bulkFileInput) return;
 
             if (btnDownloadBulkTemplate) {
-                btnDownloadBulkTemplate.addEventListener('click', async () => {
+                btnDownloadBulkTemplate.addEventListener('click', () => {
                     try {
-                        btnDownloadBulkTemplate.textContent = "Downloading...";
-                        btnDownloadBulkTemplate.disabled = true;
-
-                        const response = await fetch(chrome.runtime.getURL('templates/ServiceNow_Bulk_Catalog_Items_Template.xlsx'));
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        
-                        const blob = await response.blob();
-                        const url = URL.createObjectURL(blob);
-                        
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'ServiceNow_Bulk_Catalog_Items_Template.xlsx';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
+                        this.downloadTemplate();
                     } catch (err: any) {
                         alert("Failed to download template: " + err.message);
-                    } finally {
-                        btnDownloadBulkTemplate.textContent = "Download Excel Template";
-                        btnDownloadBulkTemplate.disabled = false;
                     }
                 });
             }
@@ -87,6 +69,131 @@ export const BulkBuilderManager = {
             if (btnCommitBulk) {
                 btnCommitBulk.addEventListener('click', () => this.executeBulkBuild(false));
             }
+        },
+
+        downloadTemplate: function () {
+            const chkVariables = (document.getElementById('chkBulkVariables') as HTMLInputElement)?.checked ?? true;
+            const chkVariableSets = (document.getElementById('chkBulkVariableSets') as HTMLInputElement)?.checked ?? true;
+            const chkUiPolicies = (document.getElementById('chkBulkUiPolicies') as HTMLInputElement)?.checked ?? true;
+
+            const instructionsData = [
+                [null, "ServiceNow Bulk Catalog Item Builder"],
+                [null, "Use this spreadsheet to design and import multiple Catalog Items with variables and policies in bulk."],
+                [],
+                [null, "1. How to Link Items with Variables & Policies"],
+                ["", "Concept", "Explanation"],
+                ["", "Temp ID", "In the \"Catalog Items\" sheet, assign a temporary integer (e.g. 1, 2, 3) to each item."],
+                ["", "Item Temp ID", "In the \"Variables\", \"Variable Sets\", and \"UI Policies\" sheets, use the parent's \"Temp ID\" to link them."],
+                ["", "Multi-item Import", "You can import dozens of items in a single upload. All links are resolved automatically during creation."],
+                [],
+                ["", "2. Explanation of Pre-loaded Examples", ""],
+                ["", "Example Name (Temp ID)", "Scenario Description & Highlights"],
+                ["", "Example 1: Developer Laptop Request (Temp ID: 1)", "Demonstrates standard fields. Includes a Select Box variable (\"laptop_model\") with choice values, and a Reference field (\"shipping_location\") linked to cmn_location. It also links a \"Standard Employee Fields\" Variable Set."],
+                ["", "Example 2: Office Access Badge Request (Temp ID: 2)", "Demonstrates facilities provisioning with checkboxes and multiple choice questions. Features a dependent UI Policy: if \"requires_parking\" is Yes, then \"start_date\" becomes mandatory."],
+                ["", "Example 3: Microsoft 365 License Access (Temp ID: 3)", "Demonstrates standard software license allocation using a Multi Line Text field for business justification."]
+            ];
+
+            const catalogItemsData = [
+                [
+                    "Temp ID", "Name", "Short Description", "Description", "Category", 
+                    "Scope", "Table Class", "Active", "Catalogs", "Order", "Hide on Portal"
+                ],
+                [
+                    1, "Developer Laptop Request", "Request a new standard corporate developer laptop.",
+                    "Standard corporate developer laptop specifications for engineering team.",
+                    "Hardware", "Global", "sc_cat_item", "Yes", "Service Catalog", 100, "No"
+                ],
+                [
+                    2, "Office Access Badge Request", "Request physical security access badge for office buildings.",
+                    "Request permissions for office access and parking gate access.",
+                    "Facilities", "Global", "sc_cat_item", "Yes", "Service Catalog", 200, "No"
+                ],
+                [
+                    3, "Microsoft 365 License Access", "Request access to standard corporate M365 application suites.",
+                    "Outlook, Teams, SharePoint, Word, Excel, PowerPoint access license.",
+                    "Software", "Global", "sc_cat_item", "Yes", "Service Catalog", 300, "No"
+                ]
+            ];
+
+            const variablesData = [
+                [
+                    "Item Temp ID", "Name", "Question", "Type", "Order", "Active", 
+                    "Mandatory", "Default Value", "Help Text", "Tooltip", "Reference Table", "Choices"
+                ],
+                [
+                    1, "laptop_model", "Select Laptop Model", "Select Box", 100, "Yes", "Yes", 
+                    "macbook_pro", "Select the laptop model you prefer", "Please choose carefully", 
+                    "", "MacBook Pro 16:macbook_pro, ThinkPad P1:thinkpad_p1"
+                ],
+                [
+                    1, "shipping_location", "Shipping Location", "Reference", 200, "Yes", "Yes", 
+                    "", "Select your primary office location", "Office Address", "cmn_location", ""
+                ],
+                [
+                    2, "badge_type", "Select Badge Type", "Multiple Choice", 100, "Yes", "Yes", 
+                    "standard", "Standard or temporary badge access", "Select type", "", 
+                    "Standard Employee:standard, Contractor Temporary:contractor"
+                ],
+                [
+                    2, "requires_parking", "Require Parking Access", "Checkbox", 200, "Yes", "No", 
+                    "false", "Tick if you need access to the secure office parking garage", 
+                    "Garage Gate Access", "", ""
+                ],
+                [
+                    2, "start_date", "Access Start Date", "Date", 300, "Yes", "No", 
+                    "", "Date the access is required to begin", "Select date", "", ""
+                ],
+                [
+                    3, "justification", "Justification", "Multi Line Text", 100, "Yes", "Yes", 
+                    "", "Explain the business need for this license tier", "Business Justification", "", ""
+                ]
+            ];
+
+            const variableSetsData = [
+                ["Item Temp ID", "Variable Set Name", "Order"],
+                [1, "Standard Employee Fields", 100]
+            ];
+
+            const uiPoliciesData = [
+                ["Item Temp ID", "Short Description", "Conditions", "Variable Name", "Mandatory", "Read Only", "Visible"],
+                [1, "Show location for MacBook Pro", "laptop_model=macbook_pro", "shipping_location", "Yes", "No", "Yes"],
+                [2, "Make parking date mandatory", "requires_parking=true", "start_date", "Yes", "Leave alone", "Yes"]
+            ];
+
+            const wb = XLSX.utils.book_new();
+
+            const wsInstructions = XLSX.utils.aoa_to_sheet(instructionsData);
+            XLSX.utils.book_append_sheet(wb, wsInstructions, "Instructions");
+
+            const wsItems = XLSX.utils.aoa_to_sheet(catalogItemsData);
+            XLSX.utils.book_append_sheet(wb, wsItems, "Catalog Items");
+
+            if (chkVariables) {
+                const wsVariables = XLSX.utils.aoa_to_sheet(variablesData);
+                XLSX.utils.book_append_sheet(wb, wsVariables, "Variables");
+            }
+
+            if (chkVariableSets) {
+                const wsVariableSets = XLSX.utils.aoa_to_sheet(variableSetsData);
+                XLSX.utils.book_append_sheet(wb, wsVariableSets, "Variable Sets");
+            }
+
+            if (chkUiPolicies) {
+                const wsUiPolicies = XLSX.utils.aoa_to_sheet(uiPoliciesData);
+                XLSX.utils.book_append_sheet(wb, wsUiPolicies, "UI Policies");
+            }
+
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ServiceNow_Bulk_Catalog_Items_Template.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         },
 
         loadBulkBuilderMetadata: async function () {

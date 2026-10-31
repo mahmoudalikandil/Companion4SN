@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNOW Companion</title>
-  <script type="module" crossorigin src="/assets/dashboard.html-CWSJ5kVn.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/dashboard-CDBAHeK1.css">
+    <title>Companion4SN</title>
+  <script type="module" crossorigin src="/assets/dashboard.html-DRQMfrps.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/dashboard-CXNu_1PJ.css">
 </head>
 
 <body>
 
     <header class="app-header">
-        <h1>ServiceNow Companion</h1>
+        <h1>Companion4SN</h1>
         <div class="status-indicator error" id="connStatus">Disconnected</div>
     </header>
 
@@ -64,7 +64,8 @@
                 </div>
 
                 <div class="input-group full-width">
-                    <label style="font-weight: 600; font-size: 12px; color: #425051;">Include Optional Related Lists in Template:</label>
+                    <label style="font-weight: 600; font-size: 12px; color: var(--p4m-text-dark);">Include Optional
+                        Related Lists in Template:</label>
                     <div class="checkbox-grid mt-5" style="width: 100%;">
                         <label><input type="checkbox" id="chkBulkVariables" checked> Variables</label>
                         <label><input type="checkbox" id="chkBulkVariableSets" checked> Variable Sets</label>
@@ -72,12 +73,15 @@
                     </div>
                 </div>
 
-                <button id="btnDownloadBulkTemplate" class="secondary-btn mt-10" style="width: 100%; height: 32px; font-size: 12px; line-height: 14px;">Download Excel Template</button>
+                <button id="btnDownloadBulkTemplate" class="secondary-btn mt-10"
+                    style="width: 100%; height: 32px; font-size: 12px; line-height: 14px;">Download Excel
+                    Template</button>
 
                 <div class="dropzone mt-15" id="bulkDropzone">
                     <div class="dropzone-inner">
                         <span class="dropzone-icon">📁</span>
-                        <p class="dropzone-text" id="bulkDropzoneText">Drag & drop completed template Excel sheet, or click to upload</p>
+                        <p class="dropzone-text" id="bulkDropzoneText">Drag & drop completed template Excel sheet, or
+                            click to upload</p>
                         <input type="file" id="bulkFileInput" accept=".xlsx" class="hidden">
                     </div>
                 </div>
@@ -224,7 +228,8 @@ while(gr.next()) {
                 <div class="lld-tabs-container">
                     <div class="tab-strip" id="lldSourceTabs">
                         <button class="tab-btn active" data-tab="lld-tab-upload">Local XML Upload</button>
-                        <button class="tab-btn" data-tab="lld-tab-live" id="lldLiveTabHeader">Live Instance Fetch</button>
+                        <button class="tab-btn" data-tab="lld-tab-live" id="lldLiveTabHeader">Live Instance
+                            Fetch</button>
                     </div>
                 </div>
 
@@ -232,7 +237,8 @@ while(gr.next()) {
                     <div class="dropzone mt-15" id="lldDropzone">
                         <div class="dropzone-inner">
                             <span class="dropzone-icon">📄</span>
-                            <p class="dropzone-text" id="lldDropzoneText">Drag & drop Update Set XML file here, or click to upload</p>
+                            <p class="dropzone-text" id="lldDropzoneText">Drag & drop Update Set XML file here, or click
+                                to upload</p>
                             <input type="file" id="lldFileInput" accept=".xml" class="hidden">
                         </div>
                     </div>
@@ -240,16 +246,20 @@ while(gr.next()) {
 
                 <div class="lld-tab-content hidden" id="lld-tab-live">
                     <div class="input-group full-width mt-10">
-                        <label style="font-weight: 600; font-size: 12px; color: #425051;">Select Connection Type:</label>
+                        <label style="font-weight: 600; font-size: 12px; color: var(--p4m-text-dark);">Select Connection
+                            Type:</label>
                         <div class="checkbox-grid mt-5" style="width: 100%; display: flex; gap: 15px;">
-                            <label><input type="radio" name="lldLiveType" value="local" checked> Local Update Sets (sys_update_set)</label>
-                            <label><input type="radio" name="lldLiveType" value="remote"> Remote Update Sets (sys_remote_update_set)</label>
+                            <label><input type="radio" name="lldLiveType" value="local" checked> Local Update Sets
+                                (sys_update_set)</label>
+                            <label><input type="radio" name="lldLiveType" value="remote"> Remote Update Sets
+                                (sys_remote_update_set)</label>
                         </div>
                     </div>
 
                     <div class="input-group full-width mt-15">
                         <label>Select Update Set from Server</label>
-                        <input type="text" id="lldLiveSearch" placeholder="Search update sets on instance..." class="form-control mb-5">
+                        <input type="text" id="lldLiveSearch" placeholder="Search update sets on instance..."
+                            class="form-control mb-5">
                         <select id="lldLiveSelect" class="form-control">
                             <option value="">-- Connect Live & Select Update Set --</option>
                         </select>
@@ -273,7 +283,8 @@ while(gr.next()) {
 
                 <div id="lldStatus" class="mt-10" style="font-size: 12px; font-weight: bold;"></div>
 
-                <div id="lldPreviewBox" class="hidden results-section" style="margin-top: 15px; flex: 1; min-height: 0;">
+                <div id="lldPreviewBox" class="hidden results-section"
+                    style="margin-top: 15px; flex: 1; min-height: 0;">
                     <h3>Generated LLD Document Preview</h3>
                     <div class="lld-tabs-container mt-5">
                         <div class="tab-strip preview-tabs" id="lldPreviewTabs">
@@ -286,8 +297,9 @@ while(gr.next()) {
                         </div>
                     </div>
 
-                    <div class="lld-preview-content-box" style="flex: 1; overflow-y: auto; background: white; border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 15px; margin-top: 10px; min-height: 250px;">
-                        
+                    <div class="lld-preview-content-box"
+                        style="flex: 1; overflow-y: auto; background: white; border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 15px; margin-top: 10px; min-height: 250px;">
+
                         <!-- Summary Tab -->
                         <div class="lld-preview-tab-pane active" id="lld-prev-summary">
                             <div id="lldSummaryArea"></div>
@@ -330,12 +342,14 @@ while(gr.next()) {
                 <div class="lld-tabs-container">
                     <div class="tab-strip" id="intMainTabs">
                         <button class="tab-btn active" data-int-tab="int-tab-creator">REST Message Creator</button>
-                        <button class="tab-btn" data-int-tab="int-tab-tester" id="intTesterTabHeader">REST Method Tester</button>
+                        <button class="tab-btn" data-int-tab="int-tab-tester" id="intTesterTabHeader">REST Method
+                            Tester</button>
                     </div>
                 </div>
 
                 <!-- Tab 1: REST Creator -->
-                <div class="int-tab-content active" id="int-tab-creator" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                <div class="int-tab-content active" id="int-tab-creator"
+                    style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
                     <div style="display: flex; gap: 15px;">
                         <div class="input-group full-width" style="flex: 1;">
                             <label>REST Message Name</label>
@@ -343,7 +357,8 @@ while(gr.next()) {
                         </div>
                         <div class="input-group full-width" style="flex: 2;">
                             <label>Base Endpoint URL</label>
-                            <input type="text" id="intMsgEndpoint" placeholder="e.g., https://hooks.slack.com/services" class="form-control">
+                            <input type="text" id="intMsgEndpoint" placeholder="e.g., https://hooks.slack.com/services"
+                                class="form-control">
                         </div>
                     </div>
 
@@ -355,23 +370,29 @@ while(gr.next()) {
                                 <option value="basic">Basic (Username/Password)</option>
                             </select>
                         </div>
-                        <div class="input-group full-width hidden" id="intBasicAuthGroup" style="flex: 2; display: none; gap: 10px;">
+                        <div class="input-group full-width hidden" id="intBasicAuthGroup"
+                            style="flex: 2; display: none; gap: 10px;">
                             <div style="flex: 1;">
                                 <label>Username</label>
                                 <input type="text" id="intAuthUser" placeholder="Username" class="form-control">
                             </div>
                             <div style="flex: 1;">
                                 <label>Password</label>
-                                <input type="password" id="intAuthPassword" placeholder="Password" class="form-control" style="width: 100%; border: 1px solid #cbd5e1; border-radius: var(--p4m-border-radius); padding: 8px 12px; font-size: 12px;">
+                                <input type="password" id="intAuthPassword" placeholder="Password" class="form-control"
+                                    style="width: 100%; border: 1px solid #cbd5e1; border-radius: var(--p4m-border-radius); padding: 8px 12px; font-size: 12px;">
                             </div>
                         </div>
                     </div>
 
                     <!-- Headers Section -->
-                    <div style="border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 12px; background-color: #fafafa;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <h4 style="margin: 0; font-size: 12px; color: var(--p4m-text-dark);">HTTP Default Headers</h4>
-                            <button id="btnIntAddHeader" class="secondary-btn" style="padding: 2px 8px; font-size: 11px;">Add Header</button>
+                    <div
+                        style="border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 12px; background-color: #fafafa;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="margin: 0; font-size: 12px; color: var(--p4m-text-dark);">HTTP Default Headers
+                            </h4>
+                            <button id="btnIntAddHeader" class="secondary-btn"
+                                style="padding: 2px 8px; font-size: 11px;">Add Header</button>
                         </div>
                         <table class="lld-preview-table" style="margin-top: 5px;">
                             <thead>
@@ -383,35 +404,50 @@ while(gr.next()) {
                             </thead>
                             <tbody id="intHeadersBody">
                                 <tr>
-                                    <td><input type="text" placeholder="Content-Type" value="application/json" class="form-control header-name-input"></td>
-                                    <td><input type="text" placeholder="application/json" value="application/json" class="form-control header-val-input"></td>
-                                    <td style="text-align: center;"><button class="secondary-btn btn-delete-header" style="color: red; padding: 2px 6px; border:none; background:none; cursor:pointer;">✕</button></td>
+                                    <td><input type="text" placeholder="Content-Type" value="application/json"
+                                            class="form-control header-name-input"></td>
+                                    <td><input type="text" placeholder="application/json" value="application/json"
+                                            class="form-control header-val-input"></td>
+                                    <td style="text-align: center;"><button class="secondary-btn btn-delete-header"
+                                            style="color: #6b7280; padding: 2px 6px; border:none; background:none; cursor:pointer;">✕</button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
                     <!-- Methods Section -->
-                    <div style="border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 12px; background-color: #fafafa;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <h4 style="margin: 0; font-size: 12px; color: var(--p4m-text-dark);">HTTP Methods (Functions)</h4>
-                            <button id="btnIntAddMethod" class="secondary-btn" style="padding: 2px 8px; font-size: 11px;">Add Method</button>
+                    <div
+                        style="border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 12px; background-color: #fafafa;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="margin: 0; font-size: 12px; color: var(--p4m-text-dark);">HTTP Methods
+                                (Functions)</h4>
+                            <button id="btnIntAddMethod" class="secondary-btn"
+                                style="padding: 2px 8px; font-size: 11px;">Add Method</button>
                         </div>
                         <div id="intMethodsList" style="display: flex; flex-direction: column; gap: 8px;">
                             <!-- Method Card (Default GET) -->
-                            <div class="int-method-card" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; background: white;">
+                            <div class="int-method-card"
+                                style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; background: white;">
                                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
-                                    <select class="form-control method-verb-select" style="width: 90px; flex-shrink: 0;">
+                                    <select class="form-control method-verb-select"
+                                        style="width: 90px; flex-shrink: 0;">
                                         <option value="get" selected>GET</option>
                                         <option value="post">POST</option>
                                         <option value="put">PUT</option>
                                         <option value="delete">DELETE</option>
                                     </select>
-                                    <input type="text" placeholder="Method Name (e.g., get_details)" value="get_details" class="form-control method-name-input" style="flex: 2;">
-                                    <input type="text" placeholder="Endpoint Suffix (e.g., /users/${userId})" value="" class="form-control method-suffix-input" style="flex: 3;">
-                                    <button class="secondary-btn btn-delete-method" style="color: red; padding: 2px 8px; border:none; background:none; cursor:pointer;">✕</button>
+                                    <input type="text" placeholder="Method Name (e.g., get_details)" value="get_details"
+                                        class="form-control method-name-input" style="flex: 2;">
+                                    <input type="text" placeholder="Endpoint Suffix (e.g., /users/${userId})" value=""
+                                        class="form-control method-suffix-input" style="flex: 3;">
+                                    <button class="secondary-btn btn-delete-method"
+                                        style="color: #6b7280; padding: 2px 8px; border:none; background:none; cursor:pointer;">✕</button>
                                 </div>
-                                <textarea class="form-control method-body-textarea hidden" placeholder="Request Body payload (JSON)..." rows="2" style="font-family: monospace; font-size: 11px; margin-top: 5px; display: none;"></textarea>
+                                <textarea class="form-control method-body-textarea hidden"
+                                    placeholder="Request Body payload (JSON)..." rows="2"
+                                    style="font-family: monospace; font-size: 11px; margin-top: 5px; display: none;"></textarea>
                             </div>
                         </div>
                     </div>
@@ -421,11 +457,14 @@ while(gr.next()) {
                         <button id="btnIntDeploy" class="primary-btn" style="flex: 1; background-color: #1f2937; border-color: #1f2937;">Deploy Live to ServiceNow</button>
                         <button id="btnIntDownloadXml" class="primary-btn success" style="flex: 1; background-color: #16a34a; border-color: #16a34a;">Download XML Update Set</button>
                     </div>
-                    <div id="intDeployStatus" style="font-size: 11px; font-weight: bold; text-align: center; color: var(--p4m-primary-color);"></div>
+                    <div id="intDeployStatus"
+                        style="font-size: 11px; font-weight: bold; text-align: center; color: var(--p4m-primary-color);">
+                    </div>
                 </div>
 
                 <!-- Tab 2: REST Tester -->
-                <div class="int-tab-content hidden" id="int-tab-tester" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px;">
+                <div class="int-tab-content hidden" id="int-tab-tester"
+                    style="display: none; flex-direction: column; gap: 15px; margin-top: 15px;">
                     <div style="display: flex; gap: 15px; align-items: flex-end;">
                         <div class="input-group full-width" style="flex: 2;">
                             <label>Select Configured Method to Test</label>
@@ -443,9 +482,12 @@ while(gr.next()) {
                     </div>
 
                     <!-- Parameter Replacement Grid -->
-                    <div id="intTestParamsContainer" class="hidden" style="display: none; border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 12px; background-color: #fafafa;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 12px; color: var(--p4m-text-dark);">Path & Body Variable Substitutions</h4>
-                        <div id="intTestParamsGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div id="intTestParamsContainer" class="hidden"
+                        style="display: none; border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 12px; background-color: #fafafa;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 12px; color: var(--p4m-text-dark);">Path & Body
+                            Variable Substitutions</h4>
+                        <div id="intTestParamsGrid"
+                            style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
                             <!-- Injected dynamically based on ${variable} -->
                         </div>
                     </div>
@@ -453,26 +495,30 @@ while(gr.next()) {
                     <button id="btnIntRunTest" class="primary-btn" style="width: 100%;">Execute API Call</button>
 
                     <!-- Tester Outputs -->
-                    <div id="intTestResultsBox" class="hidden results-section" style="display: none; margin-top: 10px; flex: 1; min-height: 0; flex-direction: column;">
-                        <h3 style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                    <div id="intTestResultsBox" class="hidden results-section"
+                        style="display: none; margin-top: 10px; flex: 1; min-height: 0; flex-direction: column;">
+                        <h3
+                            style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
                             <span>Test Output Response</span>
                             <span id="intTestStatusBadge" class="badge" style="background-color: #e5e7eb; color: #111827;">PENDING</span>
                         </h3>
-                        
+
                         <div class="lld-tabs-container">
                             <div class="tab-strip" id="intTestResultTabs">
                                 <button class="tab-btn active" data-test-tab="int-prev-body">Response Body</button>
                                 <button class="tab-btn" data-test-tab="int-prev-headers">Response Headers</button>
-                                <button class="tab-btn" data-test-tab="int-prev-snippet">ServiceNow Script Snippet</button>
+                                <button class="tab-btn" data-test-tab="int-prev-snippet">ServiceNow Script
+                                    Snippet</button>
                             </div>
                         </div>
 
-                        <div style="flex: 1; overflow-y: auto; background: white; border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 15px; margin-top: 10px; min-height: 180px;">
+                        <div
+                            style="flex: 1; overflow-y: auto; background: white; border: 1px solid var(--p4m-border-color); border-radius: var(--p4m-border-radius); padding: 15px; margin-top: 10px; min-height: 180px;">
                             <!-- Body Tab -->
                             <div class="int-test-tab-pane active" id="int-prev-body">
                                 <pre id="intTestBodyOutput" style="font-family: monospace; font-size: 11px; white-space: pre-wrap; margin: 0; color: #111827;"></pre>
                             </div>
-                            
+
                             <!-- Headers Tab -->
                             <div class="int-test-tab-pane hidden" id="int-prev-headers" style="display: none;">
                                 <pre id="intTestHeadersOutput" style="font-family: monospace; font-size: 11px; white-space: pre-wrap; margin: 0; color: #4b5563;"></pre>
@@ -537,13 +583,14 @@ while(gr.next()) {
                     <h2>Live Terminal</h2>
                     <span class="badge">Polling Engine</span>
                 </div>
-                
+
                 <div class="input-group full-width mt-10">
                     <div style="display: flex; gap: 10px; width: 100%;">
                         <button id="btnStreamLogs" class="primary-btn" style="flex: 1;">Start Stream</button>
                         <button id="btnClearLogs" class="secondary-btn" style="width: 80px;">Clear</button>
                     </div>
-                    <input type="text" id="logFilterInput" placeholder="Filter stream (e.g., your script name or 'gs.info')..." class="mt-10">
+                    <input type="text" id="logFilterInput"
+                        placeholder="Filter stream (e.g., your script name or 'gs.info')..." class="mt-10">
                 </div>
 
                 <div class="terminal-window mt-15" id="logTerminal">
@@ -556,7 +603,7 @@ while(gr.next()) {
                     <h2>XML Payload Studio</h2>
                     <span class="badge">Offline Utility</span>
                 </div>
-                
+
                 <div class="input-group mt-10" style="flex-wrap: wrap;">
                     <button id="btnFormatXML" class="secondary-btn">Format / Beautify</button>
                     <button id="btnStripSysMeta" class="secondary-btn">Strip SNOW Meta</button>
@@ -564,8 +611,9 @@ while(gr.next()) {
                     <button id="btnDownloadXML" class="primary-btn" style="flex: 1;">Download .xml</button>
                 </div>
 
-                <textarea id="xmlEditorArea" class="mt-15" spellcheck="false" placeholder="Paste your ServiceNow XML payload here..."></textarea>
-                
+                <textarea id="xmlEditorArea" class="mt-15" spellcheck="false"
+                    placeholder="Paste your ServiceNow XML payload here..."></textarea>
+
                 <div id="xmlStatus" style="margin-top: 10px; font-size: 13px; font-weight: bold;"></div>
             </div>
 
@@ -578,10 +626,12 @@ while(gr.next()) {
                 <div class="input-group full-width mt-10">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <label>Source Catalog Item</label>
-                        <button id="btnDetectClonerSource" class="secondary-btn" style="padding: 2px 8px; font-size: 11px;">Auto-Detect</button>
+                        <button id="btnDetectClonerSource" class="secondary-btn"
+                            style="padding: 2px 8px; font-size: 11px;">Auto-Detect</button>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 5px;">
-                        <input type="text" id="clonerSourceTable" placeholder="Table (e.g., sc_cat_item)" style="flex: 1;" readonly>
+                        <input type="text" id="clonerSourceTable" placeholder="Table (e.g., sc_cat_item)"
+                            style="flex: 1;" readonly>
                         <input type="text" id="clonerSourceSysId" placeholder="Sys ID" style="flex: 2;" readonly>
                     </div>
                     <input type="text" id="clonerSourceName" placeholder="Detected Item Name" class="mt-5" readonly>
@@ -589,7 +639,8 @@ while(gr.next()) {
 
                 <div class="input-group full-width mt-15">
                     <label>New Catalog Item Name</label>
-                    <input type="text" id="clonerNewName" placeholder="Enter new catalog item name..." class="form-control">
+                    <input type="text" id="clonerNewName" placeholder="Enter new catalog item name..."
+                        class="form-control">
                 </div>
 
                 <div class="input-group full-width mt-15">
@@ -616,7 +667,7 @@ while(gr.next()) {
                 </div>
 
                 <button id="btnRunClone" class="primary-btn mt-15" style="width: 100%;">Execute Clone</button>
-                
+
                 <div class="results-section hidden" id="clonerResultsBox">
                     <h3>Execution Console Output</h3>
                     <pre id="clonerOutput" class="console-output"></pre>
@@ -630,7 +681,8 @@ while(gr.next()) {
                 </div>
 
                 <div class="input-group">
-                    <input type="text" id="aclUserSearch" placeholder="Search user by name or email (Press Enter)..." style="flex: 1;">
+                    <input type="text" id="aclUserSearch" placeholder="Search user by name or email (Press Enter)..."
+                        style="flex: 1;">
                     <button id="btnAclSearchUser" class="secondary-btn">Search</button>
                 </div>
                 <ul id="aclUserSearchResults" class="search-results hidden" style="margin-top: 5px;"></ul>
@@ -641,7 +693,8 @@ while(gr.next()) {
                     <span id="aclTargetUserSysId" style="font-size: 11px; color: #4b5563;"></span>
                 </div>
 
-                <div id="aclDiagnosticsArea" class="hidden mt-15" style="display: flex; gap: 15px; flex: 1; overflow: hidden;">
+                <div id="aclDiagnosticsArea" class="hidden mt-15"
+                    style="display: flex; gap: 15px; flex: 1; overflow: hidden;">
                     <!-- Left: Role Hierarchy Tree -->
                     <div style="flex: 1; display: flex; flex-direction: column; background: white; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px; overflow-y: auto;">
                         <h4 style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #4b5563; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Role Hierarchy</h4>
@@ -708,11 +761,14 @@ while(gr.next()) {
                     <h2>Cancel Transactions (cancel_my_transaction.do)</h2>
                     <div style="display: flex; gap: 8px;">
                         <button id="btnRefreshTx" class="secondary-btn">Refresh Transactions</button>
-                        <button id="btnQuickCancelTx" class="primary-btn" style="width: auto;">Cancel Current Tab Thread</button>
+                        <button id="btnQuickCancelTx" class="primary-btn" style="width: auto;">Cancel Current Tab
+                            Thread</button>
                     </div>
                 </div>
                 <p style="font-size: 11px; color: var(--p4m-text-muted); margin-bottom: 10px; line-height: 1.4;">
-                    Displays active user session threads queryable via <strong>v_transaction</strong>. Click <strong>Cancel Thread</strong> to terminate a specific locked transaction, or use the quick cancel action to end the current page's active execution thread.
+                    Displays active user session threads queryable via <strong>v_transaction</strong>. Click
+                    <strong>Cancel Thread</strong> to terminate a specific locked transaction, or use the quick cancel
+                    action to end the current page's active execution thread.
                 </p>
                 <div class="tx-table-container">
                     <table class="tx-table">
@@ -726,14 +782,17 @@ while(gr.next()) {
                         </thead>
                         <tbody id="txTableBody">
                             <tr>
-                                <td colspan="4" style="text-align: center; color: var(--p4m-text-muted); padding: 20px;">
+                                <td colspan="4"
+                                    style="text-align: center; color: var(--p4m-text-muted); padding: 20px;">
                                     Click 'Refresh Transactions' to fetch active session records.
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div id="txStatus" style="margin-top: 10px; font-size: 12px; font-weight: bold; color: var(--p4m-primary-color);"></div>
+                <div id="txStatus"
+                    style="margin-top: 10px; font-size: 12px; font-weight: bold; color: var(--p4m-primary-color);">
+                </div>
             </div>
 
         </section>
