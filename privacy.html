@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Companion4SN Chrome Extension</title>
+    <style>
+        :root {
+            --primary: #16a34a;
+            --primary-dark: #15803d;
+            --text-dark: #111827;
+            --text-muted: #4b5563;
+            --bg-light: #f9fafb;
+            --border-color: #e5e7eb;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px 48px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+        header {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 { font-size: 26px; color: var(--text-dark); margin-bottom: 6px; }
+        .last-updated { font-size: 13px; color: var(--text-muted); font-style: italic; }
+        h2 { font-size: 18px; color: var(--text-dark); margin-top: 30px; margin-bottom: 12px; }
+        h3 { font-size: 15px; color: var(--text-dark); margin-top: 16px; margin-bottom: 8px; }
+        p, li { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
+        ul { padding-left: 24px; margin-bottom: 16px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin: 16px 0 24px 0;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+        }
+        th { background: #f3f4f6; color: var(--text-dark); font-weight: 600; }
+        code { background: #f3f4f6; padding: 2px 5px; border-radius: 4px; font-size: 12px; color: var(--text-dark); }
+        .highlight-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .highlight-box p { color: #166534; font-weight: 500; margin-bottom: 0; }
+        a { color: var(--primary); text-decoration: underline; }
+        a:hover { color: var(--primary-dark); }
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Privacy Policy for Companion4SN</h1>
+        <div class="last-updated">Last updated: October 31, 2026</div>
+    </header>
+
+    <p>Companion4SN ("the extension", "we", "us", or "our") is a developer productivity Chrome extension designed to assist ServiceNow developers, administrators, and architects with debugging, building, and inspecting their ServiceNow instances directly from their browser.</p>
+
+    <p>This Privacy Policy describes our practices regarding the collection, use, storage, and disclosure of personal and sensitive data when you use the Companion4SN extension.</p>
+
+    <div class="highlight-box">
+        <p><strong>Core Principle:</strong> Companion4SN does <strong>not</strong> collect, store, sell, or transmit any user data, credentials, browsing activity, or ServiceNow instance data to any external server, analytics service, third party, or developer-owned backend. All communications occur strictly between your local browser and the active ServiceNow instance URL you are signed in to.</p>
+    </div>
+
+    <h2>1. Personal and Sensitive Data Handled</h2>
+    <h3>A. ServiceNow Instance Connection & Session Data</h3>
+    <ul>
+        <li><strong>Instance URL:</strong> The hostname of your active ServiceNow tab (e.g., <code>https://your-instance.service-now.com</code>). Used solely to direct API requests to your instance.</li>
+        <li><strong>Session Token (<code>g_ck</code> / User Token):</strong> The existing session authentication token exposed by the ServiceNow client interface in your browser tab. Used exclusively to authenticate requests initiated through the extension on your behalf, obeying your account's exact existing Access Control Lists (ACLs) and security roles.</li>
+        <li><strong>Credentials:</strong> If you utilize the Integration Studio (HTTP method tester) with Basic Authentication, username and password values you enter are used only to construct the local Authorization header for that specific request. They are never sent to external servers or logged.</li>
+    </ul>
+
+    <h3>B. ServiceNow System & Metadata Records</h3>
+    <p>While utilizing developer tools (such as Schema Exporter, Catalog Item Cloner, User Role Analyzer, XML Payload Studio, Background Script Runner, or Instance Stats), the extension requests and displays instance data (e.g., catalog items, variables, user names, role hierarchies, update sets, system logs, and transaction status). This data is displayed strictly in the extension interface in your browser and is never stored externally.</p>
+
+    <h3>C. Uploaded Files</h3>
+    <ul>
+        <li><strong>Excel Spreadsheets (.xlsx):</strong> When using the Bulk Item Builder, spreadsheets you drag-and-drop or upload are read and processed entirely in memory inside your browser using the local <code>xlsx</code> library. Contents are submitted strictly to your ServiceNow instance when you click "Commit".</li>
+    </ul>
+
+    <h2>2. Chrome Permissions & Why They Are Needed</h2>
+    <p>In accordance with the Chrome Web Store Minimum Permissions Policy, Companion4SN only requests permissions strictly required to deliver its core functionality:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Permission</th>
+                <th>Purpose</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>activeTab</code></td>
+                <td>Access the active ServiceNow browser tab to read the instance URL and context when you click "Initialize Bridge".</td>
+            </tr>
+            <tr>
+                <td><code>tabs</code></td>
+                <td>Query the active ServiceNow tab URL and trigger page reloads when you switch scopes, switch update sets, or execute rapid impersonation.</td>
+            </tr>
+            <tr>
+                <td><code>scripting</code></td>
+                <td>Execute bridge helper scripts in the active tab context to read session tokens and context without requiring elevated web access.</td>
+            </tr>
+            <tr>
+                <td><code>storage</code></td>
+                <td>Store temporary tracking state in <code>chrome.storage.local</code> exclusively for the Background Flow Tracker.</td>
+            </tr>
+            <tr>
+                <td><code>webNavigation</code></td>
+                <td>Detect tab navigation events on ServiceNow instances to refresh connection state when navigating between instance pages.</td>
+            </tr>
+            <tr>
+                <td><code>notifications</code></td>
+                <td>Display a standard Chrome desktop notification when a background flow execution completes or encounters an error.</td>
+            </tr>
+            <tr>
+                <td><code>alarms</code></td>
+                <td>Periodically wake the service worker to poll background flow execution status until completion.</td>
+            </tr>
+            <tr>
+                <td><code>*://*.service-now.com/*</code></td>
+                <td>Restrict network requests exclusively to official ServiceNow instances to communicate via standard ServiceNow REST APIs.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>3. Data Storage, Retention, and Deletion</h2>
+    <ul>
+        <li><strong>Ephemeral Memory:</strong> By default, all instance data, logs, schemas, and query results exist only in browser memory and are discarded as soon as the extension popup window is closed.</li>
+        <li><strong>Local Storage (<code>chrome.storage.local</code>):</strong> The only persistent data stored by the extension is for the <strong>Background Flow Tracker</strong>. If you track a Flow execution, the Flow Sys ID, instance URL, and active session token are temporarily stored in <code>chrome.storage.local</code> so the background worker can monitor the flow while the popup is closed.</li>
+        <li><strong>Data Deletion:</strong> Background tracking data is automatically deleted immediately upon flow completion, cancellation, or error. You can delete all extension data at any time by uninstalling the extension or clearing your browser's extension data via <code>chrome://settings/clearBrowserData</code>.</li>
+    </ul>
+
+    <h2>4. Third-Party Sharing and Disclosure</h2>
+    <ul>
+        <li><strong>No Third-Party Transmission:</strong> We do <strong>not</strong> sell, rent, monetize, trade, or transfer any user data, personal information, or customer instance data to any third party.</li>
+        <li><strong>No Analytics or Trackers:</strong> Companion4SN does not contain Google Analytics, telemetry SDKs, crash trackers, or advertising frameworks.</li>
+        <li><strong>Fonts:</strong> The extension UI loads standard web fonts (Poppins/Roboto) via standard HTTPS requests from Google Fonts (<code>fonts.googleapis.com</code>). No personal user data is sent with font requests.</li>
+    </ul>
+
+    <h2>5. Chrome Web Store User Data Policy & Limited Use Compliance</h2>
+    <p>Companion4SN strictly complies with the <a href="https://developer.chrome.com/docs/webstore/program-policies/user-data-faq" target="_blank" rel="noopener">Chrome Web Store User Data Policy</a>, including the Limited Use requirements:</p>
+    <ul>
+        <li><strong>Single Purpose:</strong> The extension uses data exclusively to provide and enhance its single stated purpose: a live ServiceNow developer companion and diagnostic tool.</li>
+        <li><strong>No Data Selling:</strong> User data is never sold or provided to data brokers.</li>
+        <li><strong>No Advertising or Profiling:</strong> User data is never used or transferred for personalized advertising, credit assessment, or lending purposes.</li>
+        <li><strong>Human Interaction:</strong> No human reads your data unless you explicitly provide it for support or debugging inquiries.</li>
+    </ul>
+
+    <h2>6. Children's Privacy</h2>
+    <p>Companion4SN is a developer utility designed for enterprise software engineers and administrators. It is not intended for, nor directed toward, children under the age of 13.</p>
+
+    <h2>7. Contact Information</h2>
+    <p>If you have any questions, concerns, or requests regarding this Privacy Policy or your data privacy, please contact the developer directly:</p>
+    <ul>
+        <li><strong>Developer / Publisher:</strong> Mahmoud Kandil</li>
+        <li><strong>Email:</strong> <a href="mailto:mahmoudalikandil1996@gmail.com">mahmoudalikandil1996@gmail.com</a></li>
+        <li><strong>GitHub Issues:</strong> <a href="https://github.com/mahmoudalikandil/Companion4SN/issues" target="_blank" rel="noopener">https://github.com/mahmoudalikandil/Companion4SN/issues</a></li>
+    </ul>
+
+    <footer>
+        Disclaimer: ServiceNow is a registered trademark of ServiceNow, Inc. Companion4SN is an independent, open-source developer tool and is neither affiliated with, endorsed by, nor sponsored by ServiceNow, Inc.
+    </footer>
+</div>
+
+</body>
+</html>
+
